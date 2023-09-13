@@ -6,4 +6,4 @@ Previously, I was an radiation applied life science major at Seoul National Univ
 
 If you're interested in collaborating, send me an email!
 
-[Email](mailto:wooram.son@gmail.com) | [CV](https://github.com/sonwr/xrlab-fall2023/blob/main/CV.md) | [Google Scholar](https://scholar.google.com/citations?user=hiY5HgoAAAAJ) | [LinkedIn](https://www.linkedin.com/in/wooramson/) | [GitHub](https://github.com/sonwr)
+[Email](mailto:wooram.son@gmail.com) | [CV](CV.md) | [Google Scholar](https://scholar.google.com/citations?user=hiY5HgoAAAAJ) | [LinkedIn](https://www.linkedin.com/in/wooramson/) | [GitHub](https://github.com/sonwr)
