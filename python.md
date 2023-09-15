@@ -27,19 +27,29 @@ Troubleshooting (osx): [^1]
 ```
 > virtualenv [name]
 > virtualenv py39
+
+(windows)
 > activate.bat
 > deactivate.bat
 > ..\Python\py39\Scripts\activate
+
+(osx)
+% source activate
 ```
 
 3. pytorch
 - https://pytorch.kr/get-started/locally/#windows-prerequisites
+```
+(windows)
+> pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
+(osx)
+% pip3 install torch torchvision torchaudio
+```
 
 
 ### Reference
 [^1]: https://mojaie.github.io/pyenv-lzma/
-> pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 
 
