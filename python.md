@@ -8,7 +8,6 @@ Last updated: 15 Sept 2023
 > pyenv install -l
 > pyenv versions
 ```
-
 ```
 > pyenv install 3.9.5
 > pyenv uninstall 3.9.x
@@ -16,6 +15,13 @@ Last updated: 15 Sept 2023
 > pip install --upgrade pip
 > pip install virtualenv
 ```
+
+Troubleshooting (osx): [^1]
+> WARNING: The Python lzma extension was not compiled. Missing the lzma lib? 
+```
+> brew install xz
+```
+
 
 2. virtualenv
 ```
@@ -28,9 +34,13 @@ Last updated: 15 Sept 2023
 
 3. pytorch
 - https://pytorch.kr/get-started/locally/#windows-prerequisites
-```
+
+
+
+### Reference
+[^1]: https://mojaie.github.io/pyenv-lzma/
 > pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-```
+
 
 
 
