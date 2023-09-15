@@ -1,0 +1,36 @@
+# Python
+
+## pyenv for windows
+Last updated: 15 Sept 2023
+1. pyenv
+```
+> pyenv --version
+> pyenv install -l
+> pyenv versions
+```
+
+```
+> pyenv install 3.9.5
+> pyenv uninstall 3.9.x
+> pyenv global 3.9.5
+> pip install --upgrade pip
+> pip install virtualenv
+```
+
+2. virtualenv
+```
+> virtualenv [name]
+> virtualenv py39
+> activate.bat
+> deactivate.bat
+> ..\Python\py39\Scripts\activate
+```
+
+3. pytorch
+- https://pytorch.kr/get-started/locally/#windows-prerequisites
+```
+> pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+
+
