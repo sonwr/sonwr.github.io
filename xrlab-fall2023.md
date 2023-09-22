@@ -20,3 +20,7 @@
 1. [Learning OpenCV 4 Computer Vision](https://github.com/PacktPublishing/Learning-OpenCV-4-Computer-Vision-with-Python-Third-Edition)
 2. [Learning OpenCV 5 Computer Vision](https://github.com/PacktPublishing/Learning-OpenCV-5-Computer-Vision-with-Python-Fourth-Edition)
 3. [Modern Computer Vision with PyTorch](https://github.com/PacktPublishing/Modern-Computer-Vision-with-PyTorch)
+
+## Links
+1. https://www.kaggle.com/datasets
+
