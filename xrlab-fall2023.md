@@ -15,6 +15,11 @@
 ### 27 Sep 2023
 1. SIGGRAPH 2023, [EgoLocate: Real-time Motion Capture, Localization, and Mapping with Sparse Body-mounted Sensors](https://arxiv.org/abs/2305.01599)
 
+### 27 Oct 2023
+1. ECCV 2016, [Stacked hourglass networks for human pose estimation](https://arxiv.org/pdf/1603.06937.pdf)
+2. ArXiv 2018, [Numerical coordinate regression with convolutional neural networks](https://arxiv.org/pdf/1801.07372.pdf)
+
+
 ## Book Review
 1. [Computational Mathematics An Introduction to Numerical Analysis and Scientific Computing with Python](https://github.com/dmitsot/computational_mathematics)
 1. [Learning OpenCV 4 Computer Vision](https://github.com/PacktPublishing/Learning-OpenCV-4-Computer-Vision-with-Python-Third-Edition)
