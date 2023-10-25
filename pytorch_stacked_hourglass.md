@@ -29,6 +29,7 @@ Requirements:
 ## 3. PyTorch (code tested with 1.5)
 - https://developer.nvidia.com/cuda-10.2-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal
 - https://pytorch.kr/get-started/previous-versions/
+- https://stackoverflow.com/questions/56239310/could-not-find-a-version-that-satisfies-the-requirement-torch-1-0-0
 
 ```
 # CUDA 10.2
