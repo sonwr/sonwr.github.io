@@ -24,6 +24,14 @@ Requirements:
 > virtualenv py382
 > cd .\py382\Scripts\
 > .\activate
+
+> pip install opencv-python==4.2.0.34
+> pip install tqdm
+> pip install cffi
+> pip install h5py
+> pip install scipy==1.4.1
+> pip install pytz
+> pip install imageio
 ```
 
 ## 3. PyTorch (code tested with 1.5)
@@ -40,6 +48,16 @@ Requirements:
 ## 4. Dataset
 Download the full [MPII Human Pose dataset](http://human-pose.mpi-inf.mpg.de/), and place the images directory in data/MPII/
 
+```
+> cd data\MPII
+> tar -xvzf mpii_human_pose_v1.tar.gz .\
+```
+
+## 5. Training and Testing
+
+To train a network, call:
+
+```python train.py -e test_run_001``` (```-e,--exp``` allows you to specify an experiment name)
 
 
 
