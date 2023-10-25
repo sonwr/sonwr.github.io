@@ -1,5 +1,8 @@
 # Stacked Hourglass Networks in Pytorch
 
+- https://www.alejandronewell.com/
+- https://github.com/princeton-vl/pytorch_stacked_hourglass
+
 Requirements:
 - Python 3 (code has been tested on Python 3.8.2)
 - PyTorch (code tested with 1.5)
@@ -24,8 +27,9 @@ Requirements:
 ```
 
 ## 3. PyTorch (code tested with 1.5)
-https://developer.nvidia.com/cuda-10.2-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal
-https://pytorch.kr/get-started/previous-versions/
+- https://developer.nvidia.com/cuda-10.2-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal
+- https://pytorch.kr/get-started/previous-versions/
+
 ```
 # CUDA 10.2
 > pip install torch==1.5.0 torchvision==0.6.0
