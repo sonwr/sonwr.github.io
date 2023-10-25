@@ -60,5 +60,9 @@ To train a network, call:
 ```python train.py -e test_run_001``` (```-e,--exp``` allows you to specify an experiment name)
 
 
+## Note
+1. TypeError: cannot pickle 'module' object
 
+.\task\pose.py
 
+num_workers -> 0
