@@ -19,6 +19,10 @@
 1. ECCV 2016, [Stacked hourglass networks for human pose estimation](https://arxiv.org/pdf/1603.06937.pdf)
 2. ArXiv 2018, [Numerical coordinate regression with convolutional neural networks](https://arxiv.org/pdf/1801.07372.pdf)
 
+### 14 Nov 2023
+1. SIGGRAPH Asia 2022, [QuestSim: Human Motion Tracking from Sparse Sensors with Simulated Avatars](https://dl.acm.org/doi/pdf/10.1145/3550469.3555411)
+   - [Meta AI Research: Quest 2 Body Pose Estimation Without Trackers](https://www.uploadvr.com/meta-quest-2-body-tracking-without-trackers/)
+   - [YouTube - Meta Research: Quest 2 Body Tracking Without Extra Trackers](https://www.youtube.com/watch?v=QI4aMf-244A)
 
 ## Book Review
 1. [Computational Mathematics An Introduction to Numerical Analysis and Scientific Computing with Python](https://github.com/dmitsot/computational_mathematics)
