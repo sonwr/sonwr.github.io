@@ -24,6 +24,8 @@
    - [Meta AI Research: Quest 2 Body Pose Estimation Without Trackers](https://www.uploadvr.com/meta-quest-2-body-tracking-without-trackers/)
    - [YouTube - Meta Research: Quest 2 Body Tracking Without Extra Trackers](https://www.youtube.com/watch?v=QI4aMf-244A)
    - [YouTube - QuestSim: Human Motion Tracking from Sparse Sensors with Simulated Avatars](https://www.youtube.com/watch?v=CkTHsz6Ldas)
+2. SIGGRAPH 2023, [QuestEnvSim: Environment-Aware Simulated Motion Tracking from Sparse Sensors](https://arxiv.org/abs/2306.05666)
+   - [YouTube - QuestEnvSim](https://www.youtube.com/watch?v=HXkp3ILm5bY)
 
 ## Book Review
 1. [Computational Mathematics An Introduction to Numerical Analysis and Scientific Computing with Python](https://github.com/dmitsot/computational_mathematics)
