@@ -35,4 +35,7 @@
 
 ## Links
 1. https://www.kaggle.com/datasets
+2. https://huggingface.co/
+3. https://github.com/imoneoi/openchat
+
 
