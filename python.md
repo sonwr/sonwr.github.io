@@ -1,8 +1,7 @@
 # Python
-
-## pyenv for windows
 Last updated: 15 Sept 2023
-1. pyenv
+
+## 1. pyenv 
 ```
 > pyenv --version
 > pyenv install -l
@@ -23,7 +22,7 @@ Troubleshooting (osx): [^1]
 ```
 
 
-2. virtualenv
+## 2. virtualenv
 ```
 > virtualenv [name]
 > virtualenv py39
@@ -37,7 +36,7 @@ Troubleshooting (osx): [^1]
 % source activate
 ```
 
-3. pytorch
+## 3. pytorch
 - https://pytorch.kr/get-started/locally/#windows-prerequisites
 ```
 (windows)
@@ -48,7 +47,7 @@ Troubleshooting (osx): [^1]
 ```
 
 
-### Reference
+## Reference
 [^1]: https://mojaie.github.io/pyenv-lzma/
 
 
