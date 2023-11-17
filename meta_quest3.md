@@ -28,6 +28,16 @@ Gordon conveys the technical team's feedback:
 - The `supportsCameraImage` flag on the ARCameraManager's subsystem descriptor can be used to check platform support for CPU images.
 - Passthrough functionality is achieved using Meta's API for composition layer submission in the render stack, but AR Foundation does not have read access to the image's pixel data.
 
+
+## Response from Meta
+**Responder:** Hakim, Meta Store Support
+**Date:** November 14, 2023
+
+### Summary
+Confirmation that Meta Quest 3 does not currently support exporting information for external use. While developer tools might offer a workaround, official support for such implementations is not available. Users are encouraged to share ideas and feedback on the Meta Quest Community forums.
+
+
+
 ## Conclusion
 The current implementation of AR Foundation 6.0 on Meta Quest 3 does not support access to real-time external camera feeds due to platform limitations.
 
