@@ -29,6 +29,7 @@
   
 ## Code Review
 1. [Openpose](https://github.com/sonwr/sonwr.github.io/blob/main/openpose.md)
+2. [Pytorch Stacked Hourglass](https://github.com/sonwr/sonwr.github.io/blob/main/pytorch_stacked_hourglass.md)
 
 ## Book Review
 1. [Computational Mathematics An Introduction to Numerical Analysis and Scientific Computing with Python](https://github.com/dmitsot/computational_mathematics)
