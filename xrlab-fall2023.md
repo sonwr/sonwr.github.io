@@ -36,6 +36,9 @@
 ## Code Review
 1. [Openpose](https://github.com/sonwr/sonwr.github.io/blob/main/openpose.md)
 2. [Pytorch Stacked Hourglass](https://github.com/sonwr/sonwr.github.io/blob/main/pytorch_stacked_hourglass.md)
+3. [DeepMimic](https://github.com/xbpeng/DeepMimic)
+4. [Bullet Physics](https://github.com/bulletphysics/bullet3)
+5. [Ceres Solver](http://ceres-solver.org/nnls_tutorial.html)
 
 ## Book Review
 1. [Computational Mathematics An Introduction to Numerical Analysis and Scientific Computing with Python](https://github.com/dmitsot/computational_mathematics)
