@@ -27,6 +27,12 @@
 2. SIGGRAPH 2023, [QuestEnvSim: Environment-Aware Simulated Motion Tracking from Sparse Sensors](https://arxiv.org/abs/2306.05666)
    - [YouTube - QuestEnvSim](https://www.youtube.com/watch?v=HXkp3ILm5bY)
   
+### 28 Nov 2023
+1. CHI 2022, [Controllerpose: inside-out body capture with VR controller cameras](https://dl.acm.org/doi/abs/10.1145/3491102.3502105)
+2. SIGGRAPH 2018, [Deepmimic: Example-guided deep reinforcement learning of physics-based character skills](https://dl.acm.org/doi/abs/10.1145/3197517.3201311)
+3. SIGGRAPH 2018, [Physics-based Motion Capture Imitation with Deep Reinforcement Learning](https://dl.acm.org/doi/abs/10.1145/3274247.3274506)
+4. SIGGRAPH Asia 2023, [Fusing Monocular Images and Sparse IMU Signals for Real-time Human Motion Capture](https://arxiv.org/abs/2309.00310)
+
 ## Code Review
 1. [Openpose](https://github.com/sonwr/sonwr.github.io/blob/main/openpose.md)
 2. [Pytorch Stacked Hourglass](https://github.com/sonwr/sonwr.github.io/blob/main/pytorch_stacked_hourglass.md)
