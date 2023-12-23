@@ -4,6 +4,7 @@
 - **운영체제**: Windows 11 Pro
 - **개발 환경**: Visual Studio 2019
 - **소스코드 위치**: [DeepMimic GitHub 페이지](https://github.com/xbpeng/DeepMimic)
+- **Python Version**: 3.7.4
 
 ## 필요한 외부 라이브러리
 1. **Eigen**: [다운로드 링크](http://eigen.tuxfamily.org/)
@@ -49,6 +50,7 @@
 - **Operating System**: Windows 11 Pro
 - **Development Environment**: Visual Studio 2019
 - **Source Code Location**: [DeepMimic GitHub Page](https://github.com/xbpeng/DeepMimic)
+- **Python Version**: 3.7.4
 
 ## Required External Libraries
 1. **Eigen**: [Download Link](http://eigen.tuxfamily.org/)
