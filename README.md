@@ -10,3 +10,4 @@ If you're interested in collaborating, send me an email!
 
 ***
 - [Fall 2023](xrlab-fall2023.md)
+- [Winter 2023](xrlab-winter2023.md)

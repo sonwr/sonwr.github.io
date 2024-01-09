@@ -1,4 +1,5 @@
 # XR Lab Meeting
+2023 September, October, November
 
 ## Paper Review
 ### 6 Sep 2023
@@ -36,7 +37,7 @@
 ## Code Review
 1. [Openpose](https://github.com/sonwr/sonwr.github.io/blob/main/openpose.md)
 2. [Pytorch Stacked Hourglass](https://github.com/sonwr/sonwr.github.io/blob/main/pytorch_stacked_hourglass.md)
-3. [DeepMimic](https://github.com/xbpeng/DeepMimic)
+3. [DeepMimic](https://github.com/xbpeng/DeepMimic) - [Windows Build](deepmimic.md)
 4. [Bullet Physics](https://github.com/bulletphysics/bullet3)
 5. [Ceres Solver](http://ceres-solver.org/nnls_tutorial.html)
 
