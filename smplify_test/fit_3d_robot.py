@@ -293,64 +293,6 @@ def optimize_on_joints(j2d,
 
         # add the head joint, corresponding to a vertex...
         Jtr = ch.vstack((Jtr, sv[head_id]))
-        
-        print("===========Jtr============")
-        json_data_list = []
-        for joint_index, joint_position in enumerate(Jtr):
-            #x, y, z = joint_position
-            x = float(joint_position[0])
-            y = float(joint_position[1])
-            z = float(joint_position[2])
-            print("Joint Idx: " + str(joint_index) + ", x=" + str(x) + ", y=" + str(y) + ", z=" + str(z))
-            json_data_list.append([x, y, z])
-                
-        with open("output_jtr.json", "w") as json_file:
-            json.dump(json_data_list, json_file)
-            
-        print("==========================")
-        cam_rotation = cam.rt.r
-        cam_translation = cam.t.r / 10
-        
-        x = float(cam_translation[0])
-        y = float(cam_translation[1])
-        z = float(cam_translation[2])
-        print("cam_translation: " + "x=" + str(x) + ", y=" + str(y) + ", z=" + str(z))
-
-        # Rodrigues 
-        R, _ = cv2.Rodrigues(cam_rotation)
-
-        # camera coord -> world coord 
-        #Jtr_world = np.dot(R, Jtr.T).T + cam_translation
-        Jtr_world = np.dot(Jtr - cam_translation, R.T)
-
-        json_data_list = Jtr_world.tolist()
-        with open("output_world_jtr.json", "w") as json_file:
-            json.dump(json_data_list, json_file)        
-        print("==========================")
-
-        # ==================Jtr Plot===============        
-        # Create a 3D plot
-        fig = plt2.figure()
-        ax = fig.add_subplot(111, projection='3d')
-
-        # Plot each joint with a circle and text label
-        for joint_index, joint_position in enumerate(Jtr):
-            x, y, z = joint_position
-            ax.scatter(x, y, z, c='b', marker='o')  # Plot a circle at the joint's position
-            #ax.text(x, y, z, 'Joint {}'.format(joint_index), fontsize=12, color='r')  # Add text label
-
-        # Set labels for axes
-        #ax.set_xlabel('X')
-        #ax.set_ylabel('Y')
-        #ax.set_zlabel('Z')
-
-        # Show the 3D plot
-        #plt2.show()
-        # =========================================
-
-
-
-
 
         # ... and add the joint id to the list
         if o_id == 0:
@@ -559,6 +501,122 @@ def run_single_fit(img,
               'f': cam.f.r,
               'pose': sv.pose.r,
               'betas': sv.betas.r}
+    
+
+
+
+    #joints_3d = sv.Jtr
+    num_betas = n_betas
+
+
+    pose = sv.pose
+    J_regressor = model.J_regressor
+    v_template = model.v_template
+    shapedirs = model.shapedirs[:, :, :num_betas]
+    betas = sv.betas
+
+    v_shaped = v_template + shapedirs.dot(betas)
+
+    J = J_regressor.dot(v_shaped)
+
+    _, A_global = global_rigid_transformation(pose, J, model.kintree_table, xp=ch)
+    joints_3d = np.stack([g[:3, 3] for g in A_global])
+
+    print("===========Cam============")
+    cam_rotation = cam.rt.r
+    cam_translation = cam.t.r * 10
+    
+    x = float(cam_translation[0])
+    y = float(cam_translation[1])
+    z = float(cam_translation[2])
+    print("cam_translation: " + "x=" + str(x) + ", y=" + str(y) + ", z=" + str(z))
+
+
+    print("===========Jtr============")
+    json_data_list = []
+    for joint_index, joint_position in enumerate(joints_3d):
+        x = float(joint_position[0])
+        y = float(joint_position[1])
+        z = float(joint_position[2])
+        print("Joint Idx: " + str(joint_index) + ", x=" + str(x) + ", y=" + str(y) + ", z=" + str(z))
+        json_data_list.append([x, y, z])
+            
+    with open("output_jtr.json", "w") as json_file:
+        json.dump(json_data_list, json_file)      
+        
+
+    print("===========Jtr World============")
+    R, _ = cv2.Rodrigues(cam_rotation)
+
+    # camera coord -> world coord 
+    Jtr_world = np.dot(R, joints_3d.T).T + cam_translation
+    #Jtr_world = np.dot(Jtr - cam_translation, R.T)
+
+    json_data_list = Jtr_world.tolist()
+    with open("output_world_jtr.json", "w") as json_file:
+        json.dump(json_data_list, json_file)      
+
+        
+    print("===========Jtr World2============")
+    rvec = cam.rt.r # Assuming cam.rt is in chumpy format, get its numpy representation
+    R, _ = cv2.Rodrigues(rvec)
+
+    # Compute the inverse of the rotation matrix
+    R_inv = np.linalg.inv(R)
+
+    # Transform each joint coordinate
+    Jtr_world2 = np.array([R_inv.dot(joint) - cam.t.r for joint in joints_3d])
+
+    json_data_list2 = Jtr_world2.tolist()
+    with open("output_world_jtr2.json", "w") as json_file:
+        json.dump(json_data_list2, json_file)  
+
+
+    print("===========Jtr World3============")
+    cam_rt = cam.rt.r
+    cam_t = cam.t.r
+
+    cam_rot_matrix, _ = cv2.Rodrigues(cam_rt)
+
+    cam_transform = np.eye(4)
+    cam_transform[:3, :3] = cam_rot_matrix
+    cam_transform[:3, 3] = cam_t
+
+    joints_3d_hom = np.hstack([joints_3d, np.ones((joints_3d.shape[0], 1))])
+    #joints_3d_cam = (cam_transform @ joints_3d_hom.T).T
+    joints_3d_cam = np.dot(cam_transform, joints_3d_hom.T).T
+    joints_3d_cam = joints_3d_cam[:, :3]
+
+    json_data_list3 = joints_3d_cam.tolist()
+    with open("output_world_jtr3.json", "w") as json_file:
+        json.dump(json_data_list3, json_file)  
+
+
+    # ==================Jtr Plot===============        
+    # Create a 3D plot
+    fig = plt2.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot each joint with a circle and text label
+    for joint_index, joint_position in enumerate(joints_3d):
+        x, y, z = joint_position
+        ax.scatter(x, y, z, c='b', marker='o')  # Plot a circle at the joint's position
+        #ax.text(x, y, z, 'Joint {}'.format(joint_index), fontsize=12, color='r')  # Add text label
+
+    # Set labels for axes
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    # Show the 3D plot
+    plt2.show()
+    # =========================================
+
+
+
+
+
+
 
     return params, images
 
@@ -567,7 +625,8 @@ def main(base_dir,
          out_dir,
          use_interpenetration=True,
          n_betas=10,
-         flength=5000.,
+         #flength=5000.,
+         flength=1160.,
          pix_thsh=25.,
          use_neutral=False,
          viz=True):
