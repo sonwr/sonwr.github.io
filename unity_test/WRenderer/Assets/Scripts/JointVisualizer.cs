@@ -3,6 +3,42 @@ using System.IO;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
+public enum JOINT_IDX_2D
+{
+    CAPSKEL_Neck = 0,
+    CAPSKEL_RShoulder = 1,
+    CAPSKEL_LShoulder = 2,
+    CAPSKEL_RHip = 3,
+    CAPSKEL_LHip = 4,
+    CAPSKEL_RElbow = 5,
+    CAPSKEL_LElbow = 6,
+    CAPSKEL_RKnee = 7,
+    CAPSKEL_LKnee = 8,
+    CAPSKEL_RWrist = 9,
+    CAPSKEL_LWrist = 10,
+    CAPSKEL_RAnkle = 11,
+    CAPSKEL_LAnkle = 12
+};
+
+public enum JOINT_IDX_3D
+{
+    CAPSKEL_Neck = 0,
+    CAPSKEL_Head = 1,
+    CAPSKEL_RShoulder = 2,
+    CAPSKEL_RElbow = 3,
+    CAPSKEL_RWrist = 4,
+    CAPSKEL_LShoulder = 5,
+    CAPSKEL_LElbow = 6,
+    CAPSKEL_LWrist = 7,
+    CAPSKEL_RHip = 8,
+    CAPSKEL_RKnee = 9,
+    CAPSKEL_RAnkle = 10,
+    CAPSKEL_LHip = 11,
+    CAPSKEL_LKnee = 12,
+    CAPSKEL_LAnkle = 13,
+};
+
+
 [System.Serializable]
 public class JointData
 {
@@ -16,6 +52,12 @@ public class JointVisualizer : MonoBehaviour
 
     // Prefab for the cylinder to represent bones
     public GameObject bonePrefab;
+
+    // CameraSensor 스크립트가 부착된 GameObject에 대한 참조
+    public CameraSensor cameraSensor;
+
+
+    public List<GameObject> jointObjects3D;
 
 
     // Path to the JSON file within the Assets folder
@@ -33,7 +75,7 @@ public class JointVisualizer : MonoBehaviour
         var joints = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
 
         // Create a list to store the instantiated joint GameObjects
-        List<GameObject> jointObjects = new List<GameObject>();
+        jointObjects3D = new List<GameObject>();
 
         // Instantiate joints and store them in the list
         for (int i = 0; i < joints.Length; i++)
@@ -47,14 +89,48 @@ public class JointVisualizer : MonoBehaviour
             GameObject joint = Instantiate(jointPrefab, jointPosition, Quaternion.identity);
             joint.transform.SetParent(this.transform);
 
-            jointObjects.Add(joint);
+            jointObjects3D.Add(joint);
         }
 
         // Create bones between joints
-        for (int i = 1; i < jointObjects.Count; i++)
+        for (int i = 1; i < jointObjects3D.Count; i++)
         {
-            CreateBoneBetweenJoints(jointObjects[i], jointObjects[jointParentRobot[i]]);
+            CreateBoneBetweenJoints(jointObjects3D[i], jointObjects3D[jointParentRobot[i]]);
         }
+
+        // Draw Ray (2D to 3D Joint)
+        Invoke("FunctionToInvoke", 1.0f);
+    }
+
+
+    void FunctionToInvoke()
+    {
+        CreateRayBetweenJoints(jointObjects3D[0], cameraSensor.jointObjects2D[1]);  // Neck
+        CreateRayBetweenJoints(jointObjects3D[1], cameraSensor.jointObjects2D[2]);  // Right Shoulder
+        CreateRayBetweenJoints(jointObjects3D[2], cameraSensor.jointObjects2D[5]);  // Left Shoulder
+        CreateRayBetweenJoints(jointObjects3D[3], cameraSensor.jointObjects2D[8]);  // Right Hip
+        CreateRayBetweenJoints(jointObjects3D[4], cameraSensor.jointObjects2D[11]);  // Left Hip
+        CreateRayBetweenJoints(jointObjects3D[5], cameraSensor.jointObjects2D[3]);  // Right Elbow
+        CreateRayBetweenJoints(jointObjects3D[6], cameraSensor.jointObjects2D[6]);  // Left Elbow
+        CreateRayBetweenJoints(jointObjects3D[7], cameraSensor.jointObjects2D[9]);  // Right Knee
+        CreateRayBetweenJoints(jointObjects3D[8], cameraSensor.jointObjects2D[12]);  // Left Knee
+        CreateRayBetweenJoints(jointObjects3D[9], cameraSensor.jointObjects2D[4]);  // Right Knee
+        CreateRayBetweenJoints(jointObjects3D[10], cameraSensor.jointObjects2D[7]);  // Left Knee
+        CreateRayBetweenJoints(jointObjects3D[11], cameraSensor.jointObjects2D[10]);  // Right Ankle
+        CreateRayBetweenJoints(jointObjects3D[12], cameraSensor.jointObjects2D[13]);  // Left Ankle
+
+
+
+        /*
+        // 3D 조인트와 2D 조인트를 연결하는 선 생성
+        for (int i = 0; i < jointObjects3D.Count; i++)
+        {
+            if (i + 1 < cameraSensor.jointObjects2D.Count)
+            {
+                CreateRayBetweenJoints(jointObjects3D[i], cameraSensor.jointObjects2D[i+1]);
+            }
+        }
+        */
     }
 
     // Method to create a bone between two joints
@@ -68,6 +144,20 @@ public class JointVisualizer : MonoBehaviour
         bone.transform.position = parentJoint.transform.position + direction * distance * 0.5f;
         bone.transform.up = direction;
         bone.transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
+        bone.transform.SetParent(this.transform);
+    }
+
+    // Method to create a bone between two joints
+    private void CreateRayBetweenJoints(GameObject childJoint, GameObject parentJoint)
+    {
+        Vector3 direction = childJoint.transform.position - parentJoint.transform.position;
+        float distance = direction.magnitude;
+        direction.Normalize();
+
+        GameObject bone = Instantiate(bonePrefab);
+        bone.transform.position = parentJoint.transform.position + direction * distance * 0.5f;
+        bone.transform.up = direction;
+        bone.transform.localScale = new Vector3(0.0005f, distance * 0.5f, 0.0005f);
         bone.transform.SetParent(this.transform);
     }
 

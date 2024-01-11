@@ -11,6 +11,8 @@ public class CameraSensor : MonoBehaviour
     public float width = 320.0f;
     public float height = 320.0f;
 
+    public List<GameObject> jointObjects2D;
+
     // 이 스크립트를 사용하여 화면에 표시할 Sprite
     //public Sprite mySprite;
 
@@ -47,6 +49,9 @@ public class CameraSensor : MonoBehaviour
         string dataAsJson = File.ReadAllText(filePath);
         var joints = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
 
+        // Create a list to store the instantiated joint GameObjects
+        jointObjects2D = new List<GameObject>();
+
         // Instantiate joints and store them in the list
         for (int i = 0; i < joints.Length; i++)
         {
@@ -59,6 +64,7 @@ public class CameraSensor : MonoBehaviour
             joint.transform.SetPositionAndRotation(jointPosition, Quaternion.identity);
             joint.transform.localPosition = jointPosition;
 
+            jointObjects2D.Add(joint);
         }
     }
 

@@ -149,7 +149,7 @@ Transform:
   m_GameObject: {fileID: 69685760}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.075}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -171,6 +171,7 @@ MonoBehaviour:
   scale: 0.00025
   width: 320
   height: 320
+  jointObjects2D: []
   jointPrefab: {fileID: 6738561687746602026, guid: 42ccae4be2403436981e058584606da8, type: 3}
 --- !u!1 &73852107
 GameObject:
@@ -456,6 +457,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointPrefab: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
   bonePrefab: {fileID: 4775857794237226603, guid: 984ee16bc47bb4e6cb309b9599732cee, type: 3}
+  cameraSensor: {fileID: 69685762}
+  jointObjects3D: []
 --- !u!1 &782730525
 GameObject:
   m_ObjectHideFlags: 0
@@ -1609,6 +1612,7 @@ MonoBehaviour:
   scale: 0.001
   width: 320
   height: 320
+  jointObjects2D: []
   jointPrefab: {fileID: 0}
 --- !u!1 &1863039987
 GameObject:
