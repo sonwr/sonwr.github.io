@@ -21,8 +21,18 @@ class MyApp(ShowBase):
         self.create_axis_line_with_label('Z', Vec4(0, 0, 1, 1), Vec3(0, 0, 0), Vec3(0, 0, 1))  # Z-axis (Blue)
 
         # Set the camera position and orientation
-        self.camera.setPos(0, 0, -1)  # Camera positioned at (0, 0, -100)
-        self.camera.lookAt(0, 0, 0)  # Camera looking towards the origin
+        #self.camera.setPos(0, -100, 100)  # Camera positioned at (0, 0, -100)
+        #self.camera.lookAt(0, 0, 0)  # Camera looking towards the origin
+        #self.disableMouse()
+        #self.camera.setPos(0, -2, 0)
+        #self.camera.lookAt(0, 0, 0)
+        #self.enableMouse()
+
+
+        self.setFrameRateMeter(True)
+
+
+
 
     def create_axis_line_with_label(self, label, color, start, end):
         # Draw the line
