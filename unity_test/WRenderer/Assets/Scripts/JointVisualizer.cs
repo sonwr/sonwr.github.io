@@ -38,6 +38,12 @@ public enum JOINT_IDX_3D
     CAPSKEL_LAnkle = 13,
 };
 
+public enum JOINT_MODEL_TYPE
+{
+    DEEPROBOT,
+    SMPLIFY
+}
+
 
 [System.Serializable]
 public class JointData
@@ -53,23 +59,49 @@ public class JointVisualizer : MonoBehaviour
     // Prefab for the cylinder to represent bones
     public GameObject bonePrefab;
 
+    // Prefab for the cylinder to represent ray
+    public GameObject rayPrefab;
+
+    public JointVisualizer jointVisualizerDeepRobot;
+
     // CameraSensor 스크립트가 부착된 GameObject에 대한 참조
     public CameraSensor cameraSensor;
 
+    public JOINT_MODEL_TYPE jointModelType = JOINT_MODEL_TYPE.DEEPROBOT;
 
+    public float scale = 0.01f;
+
+
+    // Internal use
     public List<GameObject> jointObjects3D;
-
 
     // Path to the JSON file within the Assets folder
     private string filePath = Directory.GetCurrentDirectory() + "/Data/deeprobot_joint_3d.json";
 
     // The parent index for each joint
-    private int[] jointParentRobot = new int[] { 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+    private int[] jointParentIndex = new int[] { 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 
 
     // Start is called before the first frame update
     void Start()
     {
+        if (jointModelType == JOINT_MODEL_TYPE.DEEPROBOT)
+        {
+            filePath = Directory.GetCurrentDirectory() + "/Data/deeprobot_joint_3d.json";
+            jointParentIndex = new int[] { 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+
+            // Draw Ray (2D to 3D Joint)
+            Invoke("CreateRayFunctionToInvoke", 2.0f);
+        }
+        else
+        {
+            filePath = Directory.GetCurrentDirectory() + "/Data/smplify_joint_3d.json";
+            jointParentIndex = new int[] { 3, 0, 0, 6, 1, 2, 9, 4, 5, 12, 7, 8, 15, 12, 12, 24, 13, 14, 16, 17, 18, 19, 20, 21, 24 };
+
+            // Draw Ray (2D to 3D Joint)
+            Invoke("AlignmentFunctionToInvoke", 2.0f);
+        }
+
         // Read and process the JSON file
         string dataAsJson = File.ReadAllText(filePath);
         var joints = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
@@ -80,10 +112,9 @@ public class JointVisualizer : MonoBehaviour
         // Instantiate joints and store them in the list
         for (int i = 0; i < joints.Length; i++)
         {
-            float scale = 100.0f;
-            float x = joints[i][0] / scale;
-            float y = joints[i][1] / scale;
-            float z = joints[i][2] / scale;
+            float x = joints[i][0] * scale;
+            float y = joints[i][1] * scale;
+            float z = joints[i][2] * scale;
 
             Vector3 jointPosition = new Vector3(x, y, z);
             GameObject joint = Instantiate(jointPrefab, jointPosition, Quaternion.identity);
@@ -91,20 +122,19 @@ public class JointVisualizer : MonoBehaviour
 
             jointObjects3D.Add(joint);
         }
-
-        // Create bones between joints
-        for (int i = 1; i < jointObjects3D.Count; i++)
-        {
-            CreateBoneBetweenJoints(jointObjects3D[i], jointObjects3D[jointParentRobot[i]]);
-        }
-
-        // Draw Ray (2D to 3D Joint)
-        Invoke("FunctionToInvoke", 1.0f);
     }
 
 
-    void FunctionToInvoke()
+    void CreateRayFunctionToInvoke()
     {
+        // Create bones between joints
+        for (int i = 0; i < jointObjects3D.Count; i++)
+        {
+            int parentIdx = jointParentIndex[i];
+            if (parentIdx < jointObjects3D.Count)
+                CreateBoneBetweenJoints(jointObjects3D[i], jointObjects3D[jointParentIndex[i]]);
+        }
+
         CreateRayBetweenJoints(jointObjects3D[0], cameraSensor.jointObjects2D[1]);  // Neck
         CreateRayBetweenJoints(jointObjects3D[1], cameraSensor.jointObjects2D[2]);  // Right Shoulder
         CreateRayBetweenJoints(jointObjects3D[2], cameraSensor.jointObjects2D[5]);  // Left Shoulder
@@ -119,8 +149,6 @@ public class JointVisualizer : MonoBehaviour
         CreateRayBetweenJoints(jointObjects3D[11], cameraSensor.jointObjects2D[10]);  // Right Ankle
         CreateRayBetweenJoints(jointObjects3D[12], cameraSensor.jointObjects2D[13]);  // Left Ankle
 
-
-
         /*
         // 3D 조인트와 2D 조인트를 연결하는 선 생성
         for (int i = 0; i < jointObjects3D.Count; i++)
@@ -131,6 +159,48 @@ public class JointVisualizer : MonoBehaviour
             }
         }
         */
+    }
+
+    void AlignmentFunctionToInvoke()
+    {
+        // 좌표 보정
+        AdjustScaleAndPosition(jointObjects3D, jointVisualizerDeepRobot.jointObjects3D);
+
+        for (int i = 0; i < jointObjects3D.Count; i++)
+        {
+            int parentIdx = jointParentIndex[i];
+            if (parentIdx < jointObjects3D.Count)
+                CreateBoneBetweenJoints(jointObjects3D[i], jointObjects3D[jointParentIndex[i]]);
+        }
+    }
+
+    private float CalculateDistance(GameObject point1, GameObject point2)
+    {
+        return Vector3.Distance(point1.transform.position, point2.transform.position);
+    }
+
+    private void AdjustScaleAndPosition(List<GameObject> smplifyJoints, List<GameObject> robotJoints)
+    {
+        // 스케일 계산
+        float robotDistance = CalculateDistance(robotJoints[(int)JOINT_IDX_3D.CAPSKEL_RShoulder], robotJoints[(int)JOINT_IDX_3D.CAPSKEL_LShoulder]);
+        float smplifyDistance = CalculateDistance(smplifyJoints[16], smplifyJoints[17]); // 인덱스는 Python 코드에 기반하여 조정해야 할 수 있음
+        float scale = robotDistance / smplifyDistance;
+
+        // 스케일 조정
+        for (int i = 0; i < smplifyJoints.Count; i++)
+        {
+            smplifyJoints[i].transform.localScale *= scale;
+        }
+
+        // 위치 조정
+        Vector3 robotPoint = robotJoints[(int)JOINT_IDX_3D.CAPSKEL_Neck].transform.position;
+        Vector3 smplifyPoint = smplifyJoints[12].transform.position; // 인덱스는 Python 코드에 기반하여 조정해야 할 수 있음
+        Vector3 displacement = robotPoint - smplifyPoint;
+
+        for (int i = 0; i < smplifyJoints.Count; i++)
+        {
+            smplifyJoints[i].transform.position += displacement;
+        }
     }
 
     // Method to create a bone between two joints
@@ -154,7 +224,7 @@ public class JointVisualizer : MonoBehaviour
         float distance = direction.magnitude;
         direction.Normalize();
 
-        GameObject bone = Instantiate(bonePrefab);
+        GameObject bone = Instantiate(rayPrefab);
         bone.transform.position = parentJoint.transform.position + direction * distance * 0.5f;
         bone.transform.up = direction;
         bone.transform.localScale = new Vector3(0.0005f, distance * 0.5f, 0.0005f);

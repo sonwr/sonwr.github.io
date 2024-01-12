@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6769884955880221591}
   - component: {fileID: 783179840312771357}
   m_Layer: 0
-  m_Name: BoneCylinder
+  m_Name: BoneCylinderRed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4f142461ca5b54be9933de009082db64, type: 2}
+  - {fileID: 2100000, guid: ae24db9cdb7754550b4e714bedd9c595, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
