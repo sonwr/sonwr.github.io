@@ -73,6 +73,8 @@ public class JointVisualizer : MonoBehaviour
 
 
     // Internal use
+    public int frameIndex = 1800;
+
     public List<GameObject> jointObjects3D;
 
     // Path to the JSON file within the Assets folder
@@ -87,7 +89,10 @@ public class JointVisualizer : MonoBehaviour
     {
         if (jointModelType == JOINT_MODEL_TYPE.DEEPROBOT)
         {
-            filePath = Directory.GetCurrentDirectory() + "/Data/deeprobot_joint_3d.json";
+            //filePath = Directory.GetCurrentDirectory() + "/Data/deeprobot_joint_3d.json
+
+            string fileName = "f_" + frameIndex.ToString() + "_3_joint_3d.json";
+            filePath = Directory.GetCurrentDirectory() + "/Data/" + fileName;
             jointParentIndex = new int[] { 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 
             // Draw Ray (2D to 3D Joint)
@@ -95,10 +100,13 @@ public class JointVisualizer : MonoBehaviour
         }
         else
         {
-            filePath = Directory.GetCurrentDirectory() + "/Data/smplify_joint_3d.json";
+            //filePath = Directory.GetCurrentDirectory() + "/Data/smplify_joint_3d.json";
+
+            string fileName = "f_" + frameIndex.ToString() + "_3_joint_3d_smplify4.json";
+            filePath = Directory.GetCurrentDirectory() + "/Data/" + fileName;
             jointParentIndex = new int[] { 3, 0, 0, 6, 1, 2, 9, 4, 5, 12, 7, 8, 15, 12, 12, 24, 13, 14, 16, 17, 18, 19, 20, 21, 24 };
 
-            // Draw Ray (2D to 3D Joint)
+            // Align (DeepRobot, SMPLify)
             Invoke("AlignmentFunctionToInvoke", 2.0f);
         }
 

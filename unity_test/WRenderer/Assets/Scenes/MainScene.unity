@@ -207,6 +207,37 @@ Transform:
   - {fileID: 1309746544}
   m_Father: {fileID: 1343539238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &233105785
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 233105786}
+  m_Layer: 0
+  m_Name: DeepRobot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &233105786
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 233105785}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 812798313}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &379760384 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: b903aa1ce6c7e4f15beac667a392f571, type: 3}
@@ -221,7 +252,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 563046495}
-  - component: {fileID: 563046496}
   - component: {fileID: 563046497}
   m_Layer: 0
   m_Name: JointVisualizerSMPLify
@@ -229,7 +259,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &563046495
 Transform:
   m_ObjectHideFlags: 0
@@ -245,25 +275,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1343539238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &563046496
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 563046494}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 400eadb12c7d44f1aa7b9cec28dacde7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  jointPrefab: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
-  bonePrefab: {fileID: 4775857794237226603, guid: 80cf9ade9777044348c77026e162623b, type: 3}
-  jointModelType: 1
-  scale: 1
-  jointObjects3D: []
-  filePath: /Users/wooramson/Documents/GitHub/sonwr.github.io/unity_test/WRenderer/Data/deeprobot_joint_3d.json
-  jointParentIndex: 0300000000000000000000000600000001000000020000000900000004000000050000000c00000007000000080000000f0000000c0000000c000000180000000d0000000e00000010000000110000001200000013000000140000001500000018000000
 --- !u!114 &563046497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,6 +294,7 @@ MonoBehaviour:
   cameraSensor: {fileID: 0}
   jointModelType: 1
   scale: 1
+  frameIndex: 1800
   jointObjects3D: []
 --- !u!1 &570911685
 GameObject:
@@ -593,7 +605,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &761916785
 Transform:
   m_ObjectHideFlags: 0
@@ -628,6 +640,7 @@ MonoBehaviour:
   cameraSensor: {fileID: 69685762}
   jointModelType: 0
   scale: 0.01
+  frameIndex: 1800
   jointObjects3D: []
 --- !u!1 &782730525
 GameObject:
@@ -802,6 +815,59 @@ Transform:
   - {fileID: 1250360017}
   m_Father: {fileID: 782730526}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
+--- !u!1 &812798312
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 812798313}
+  - component: {fileID: 812798314}
+  m_Layer: 0
+  m_Name: JointRenderer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &812798313
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 812798312}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 233105786}
+  - {fileID: 2102138798}
+  m_Father: {fileID: 1343539238}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &812798314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 812798312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41aab8b5ff7fc44ff8dd69882d2b42df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jointPrefab: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
+  jointsParentDeepRobot: {fileID: 233105785}
+  jointsParentSMPLify: {fileID: 2102138797}
+  jointGameObjectsDeepRobot: []
+  jointGameObjectsSMPLify: []
+  scaleFactorDeepRobot: 0.01
+  scaleFactorSMPLify: 1
 --- !u!1 &1122822275
 GameObject:
   m_ObjectHideFlags: 0
@@ -1255,6 +1321,7 @@ Transform:
   - {fileID: 73852108}
   - {fileID: 761916785}
   - {fileID: 563046495}
+  - {fileID: 812798313}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1384520139
@@ -1997,6 +2064,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2053694745}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2102138797
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2102138798}
+  m_Layer: 0
+  m_Name: SMPLify
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2102138798
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2102138797}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 812798313}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
