@@ -861,12 +861,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41aab8b5ff7fc44ff8dd69882d2b42df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jointPrefab: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
   jointsParentDeepRobot: {fileID: 233105785}
   jointsParentSMPLify: {fileID: 2102138797}
-  bonePrefab: {fileID: 4775857794237226603, guid: 984ee16bc47bb4e6cb309b9599732cee, type: 3}
-  jointGameObjectsDeepRobot:
-  - {fileID: 4775857794237226603, guid: 984ee16bc47bb4e6cb309b9599732cee, type: 3}
+  jointPrefabDeepRobot: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
+  jointPrefabSMPLify: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
+  bonePrefabDeepRobot: {fileID: 4775857794237226603, guid: 984ee16bc47bb4e6cb309b9599732cee, type: 3}
+  bonePrefabSMPLify: {fileID: 4775857794237226603, guid: 80cf9ade9777044348c77026e162623b, type: 3}
+  jointGameObjectsDeepRobot: []
   jointGameObjectsSMPLify: []
   boneGameObjectsDeepRobot: []
   boneGameObjectsSMPLify: []

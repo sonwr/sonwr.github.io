@@ -7,13 +7,17 @@ using Newtonsoft.Json;
 
 public class JointRenderer : MonoBehaviour
 {
-    // Prefab for the sphere to represent joints
-    public GameObject jointPrefab;
+    // Prefab for the parent of joints
     public GameObject jointsParentDeepRobot;
     public GameObject jointsParentSMPLify;
 
+    // Prefab for the sphere to represent joints
+    public GameObject jointPrefabDeepRobot;
+    public GameObject jointPrefabSMPLify;
+
     // Prefab for the cylinder to represent bones
-    public GameObject bonePrefab;
+    public GameObject bonePrefabDeepRobot;
+    public GameObject bonePrefabSMPLify;
 
     // Joint
     public List<GameObject> jointGameObjectsDeepRobot;
@@ -36,8 +40,9 @@ public class JointRenderer : MonoBehaviour
     private Vector3 alignTransform = new Vector3();
 
     // The parent index for each joint
-    private int[] jointParentIndexDeepRobot = new int[] { 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-    private int[] jointParentIndexSMPLify = new int[] { 3, 0, 0, 6, 1, 2, 9, 4, 5, 12, 7, 8, 15, 12, 12, 24, 13, 14, 16, 17, 18, 19, 20, 21, 24 };
+    private int[] jointParentIndexDeepRobot = new int[] { -1, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+    //private int[] jointParentIndexSMPLify = new int[] { 3, 0, 0, 6, 1, 2, 9, 4, 5, 12, 7, 8, 15, 12, 12, 24, 13, 14, 16, 17, 18, 19, 20, 21, 24 };
+    private int[] jointParentIndexSMPLify = new int[] { 3, 0, 0, 6, 1, 2, 9, 4, 5, 12, 7, 8, 15, 9, 9, -1, 13, 14, 16, 17, 18, 19, 20, 21 };
 
     // Start is called before the first frame update
     void Start()
@@ -62,12 +67,13 @@ public class JointRenderer : MonoBehaviour
         for (int i = 0; i < jointCountDeepRobot; i++)
         {
             Vector3 jointPosition = new Vector3(0, 0, 0);
-            GameObject joint = Instantiate(jointPrefab, jointPosition, Quaternion.identity);
+            GameObject joint = Instantiate(jointPrefabDeepRobot, jointPosition, Quaternion.identity);
             joint.transform.SetParent(jointsParentDeepRobot.transform);
             jointGameObjectsDeepRobot.Add(joint);
 
-            GameObject bone = Instantiate(bonePrefab, jointPosition, Quaternion.identity);
+            GameObject bone = Instantiate(bonePrefabDeepRobot, jointPosition, Quaternion.identity);
             bone.transform.SetParent(jointsParentDeepRobot.transform);
+            bone.SetActive(false);
             boneGameObjectsDeepRobot.Add(bone);
         }
 
@@ -78,9 +84,14 @@ public class JointRenderer : MonoBehaviour
         for (int i = 0; i < jointCountSMPLify; i++)
         {
             Vector3 jointPosition = new Vector3(0, 0, 0);
-            GameObject joint = Instantiate(jointPrefab, jointPosition, Quaternion.identity);
+            GameObject joint = Instantiate(jointPrefabSMPLify, jointPosition, Quaternion.identity);
             joint.transform.SetParent(jointsParentSMPLify.transform);
             jointGameObjectsSMPLify.Add(joint);
+
+            GameObject bone = Instantiate(bonePrefabSMPLify, jointPosition, Quaternion.identity);
+            bone.transform.SetParent(jointsParentSMPLify.transform);
+            bone.SetActive(false);
+            boneGameObjectsSMPLify.Add(bone);
         }
     }
 
@@ -111,6 +122,9 @@ public class JointRenderer : MonoBehaviour
             // Bone position
             for (int i = 0; i < joints.Length; i++)
             {
+                if (jointParentIndexDeepRobot[i] < 0)
+                    continue;
+
                 GameObject childJoint = jointGameObjectsDeepRobot[i];
                 GameObject parentJoint = jointGameObjectsDeepRobot[jointParentIndexDeepRobot[i]];
 
@@ -121,6 +135,7 @@ public class JointRenderer : MonoBehaviour
                 boneGameObjectsDeepRobot[i].transform.position = parentJoint.transform.position + direction * distance * 0.5f;
                 boneGameObjectsDeepRobot[i].transform.up = direction;
                 boneGameObjectsDeepRobot[i].transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
+                boneGameObjectsDeepRobot[i].SetActive(true);
             }
         }
 
@@ -145,6 +160,25 @@ public class JointRenderer : MonoBehaviour
                 // GameObject
                 jointGameObjectsSMPLify[i].transform.position = newPosition * scaleFactorDeepRobot;
             }
+
+            // Bone position
+            for (int i = 0; i < joints.Length; i++)
+            {
+                if (jointParentIndexSMPLify[i] < 0)
+                    continue;
+
+                GameObject childJoint = jointGameObjectsSMPLify[i];
+                GameObject parentJoint = jointGameObjectsSMPLify[jointParentIndexSMPLify[i]];
+
+                Vector3 direction = childJoint.transform.position - parentJoint.transform.position;
+                float distance = direction.magnitude;
+                direction.Normalize();
+
+                boneGameObjectsSMPLify[i].transform.position = parentJoint.transform.position + direction * distance * 0.5f;
+                boneGameObjectsSMPLify[i].transform.up = direction;
+                boneGameObjectsSMPLify[i].transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
+                boneGameObjectsSMPLify[i].SetActive(true);
+            }
         }
 
         // Calculate Alignment
@@ -167,19 +201,5 @@ public class JointRenderer : MonoBehaviour
         Vector3 displacement = robotPoint - smplifyPoint;
 
         return (scale, displacement);
-    }
-
-    // Method to create a bone between two joints
-    private void CreateBoneBetweenJoints(GameObject childJoint, GameObject parentJoint)
-    {
-        Vector3 direction = childJoint.transform.position - parentJoint.transform.position;
-        float distance = direction.magnitude;
-        direction.Normalize();
-
-        GameObject bone = Instantiate(bonePrefab);
-        bone.transform.position = parentJoint.transform.position + direction * distance * 0.5f;
-        bone.transform.up = direction;
-        bone.transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
-        bone.transform.SetParent(this.transform);
     }
 }
