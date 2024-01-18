@@ -864,10 +864,12 @@ MonoBehaviour:
   jointPrefab: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
   jointsParentDeepRobot: {fileID: 233105785}
   jointsParentSMPLify: {fileID: 2102138797}
-  jointGameObjectsDeepRobot: []
+  bonePrefab: {fileID: 4775857794237226603, guid: 984ee16bc47bb4e6cb309b9599732cee, type: 3}
+  jointGameObjectsDeepRobot:
+  - {fileID: 4775857794237226603, guid: 984ee16bc47bb4e6cb309b9599732cee, type: 3}
   jointGameObjectsSMPLify: []
-  scaleFactorDeepRobot: 0.01
-  scaleFactorSMPLify: 1
+  boneGameObjectsDeepRobot: []
+  boneGameObjectsSMPLify: []
 --- !u!1 &1122822275
 GameObject:
   m_ObjectHideFlags: 0

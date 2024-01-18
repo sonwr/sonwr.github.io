@@ -12,9 +12,16 @@ public class JointRenderer : MonoBehaviour
     public GameObject jointsParentDeepRobot;
     public GameObject jointsParentSMPLify;
 
+    // Prefab for the cylinder to represent bones
+    public GameObject bonePrefab;
+
     // Joint
     public List<GameObject> jointGameObjectsDeepRobot;
     public List<GameObject> jointGameObjectsSMPLify;
+
+    // Bone
+    public List<GameObject> boneGameObjectsDeepRobot;
+    public List<GameObject> boneGameObjectsSMPLify;
 
     // Internal use
     private int frameIndex = 1800;
@@ -58,6 +65,10 @@ public class JointRenderer : MonoBehaviour
             GameObject joint = Instantiate(jointPrefab, jointPosition, Quaternion.identity);
             joint.transform.SetParent(jointsParentDeepRobot.transform);
             jointGameObjectsDeepRobot.Add(joint);
+
+            GameObject bone = Instantiate(bonePrefab, jointPosition, Quaternion.identity);
+            bone.transform.SetParent(jointsParentDeepRobot.transform);
+            boneGameObjectsDeepRobot.Add(bone);
         }
 
         // SMPLify Joints - Create a list to store the instantiated joint GameObjects
@@ -96,6 +107,21 @@ public class JointRenderer : MonoBehaviour
                 // GameObject
                 jointGameObjectsDeepRobot[i].transform.position = position * scaleFactorDeepRobot;
             }
+
+            // Bone position
+            for (int i = 0; i < joints.Length; i++)
+            {
+                GameObject childJoint = jointGameObjectsDeepRobot[i];
+                GameObject parentJoint = jointGameObjectsDeepRobot[jointParentIndexDeepRobot[i]];
+
+                Vector3 direction = childJoint.transform.position - parentJoint.transform.position;
+                float distance = direction.magnitude;
+                direction.Normalize();
+
+                boneGameObjectsDeepRobot[i].transform.position = parentJoint.transform.position + direction * distance * 0.5f;
+                boneGameObjectsDeepRobot[i].transform.up = direction;
+                boneGameObjectsDeepRobot[i].transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
+            }
         }
 
         // SMPLify Joints
@@ -126,56 +152,6 @@ public class JointRenderer : MonoBehaviour
             (alignScaleFactor, alignTransform) = AdjustScaleAndPosition(jointsListDeepRobot, jointsListSMPLify);
     }
 
-    /*
-    private void DataLoader2()
-    {
-        // Load Json
-        string filePath = Directory.GetCurrentDirectory() + "/Data/f_" + frameIndex.ToString() + "_3_joint_3d.json";
-        string dataAsJson = File.ReadAllText(filePath);
-        var jointsDeepRobot = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
-
-        filePath = Directory.GetCurrentDirectory() + "/Data/f_" + frameIndex.ToString() + "_3_joint_3d_smplify4.json";
-        dataAsJson = File.ReadAllText(filePath);
-        var jointsSMPLify = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
-
-        // Align
-        AdjustScaleAndPosition(jointsDeepRobot, jointsSMPLify);
-
-
-        // DeepRobot Joints
-        if (jointGameObjectsDeepRobot.Count >= jointCountDeepRobot)
-        {
-            for (int i = 0; i < jointsDeepRobot.Length; i++)
-            {
-                float x = jointsDeepRobot[i][0] * scaleFactorDeepRobot;
-                float y = jointsDeepRobot[i][1] * scaleFactorDeepRobot;
-                float z = jointsDeepRobot[i][2] * scaleFactorDeepRobot;
-
-                if (i < 0 || i >= jointGameObjectsDeepRobot.Count)
-                    continue;
-
-                jointGameObjectsDeepRobot[i].transform.position = new Vector3(x, y, z);
-            }
-        }
-
-        // SMPLify Joints
-        if (jointGameObjectsSMPLify.Count >= jointCountSMPLify)
-        {
-            for (int i = 0; i < jointsSMPLify.Length; i++)
-            {
-                float x = jointsSMPLify[i][0] * scaleFactorSMPLify;
-                float y = jointsSMPLify[i][1] * scaleFactorSMPLify;
-                float z = jointsSMPLify[i][2] * scaleFactorSMPLify;
-
-                if (i < 0 || i >= jointGameObjectsSMPLify.Count)
-                    continue;
-
-                jointGameObjectsSMPLify[i].transform.position = new Vector3(x, y, z);
-            }
-        }
-    }
-    */
-
     private (float, Vector3) AdjustScaleAndPosition(List<Vector3> jointsListDeepRobot, List<Vector3> jointsListSMPLify)
     {
         // 스케일 계산
@@ -191,5 +167,19 @@ public class JointRenderer : MonoBehaviour
         Vector3 displacement = robotPoint - smplifyPoint;
 
         return (scale, displacement);
+    }
+
+    // Method to create a bone between two joints
+    private void CreateBoneBetweenJoints(GameObject childJoint, GameObject parentJoint)
+    {
+        Vector3 direction = childJoint.transform.position - parentJoint.transform.position;
+        float distance = direction.magnitude;
+        direction.Normalize();
+
+        GameObject bone = Instantiate(bonePrefab);
+        bone.transform.position = parentJoint.transform.position + direction * distance * 0.5f;
+        bone.transform.up = direction;
+        bone.transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
+        bone.transform.SetParent(this.transform);
     }
 }
