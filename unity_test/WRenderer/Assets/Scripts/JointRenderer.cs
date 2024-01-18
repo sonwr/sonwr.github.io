@@ -24,7 +24,6 @@ public class JointRenderer : MonoBehaviour
     private int jointCountSMPLify = 24;
 
     private float scaleFactorDeepRobot = 0.01f;
-    private float scaleFactorSMPLify = 0.01f;
 
     private float alignScaleFactor = 1.0f;
     private Vector3 alignTransform = new Vector3();
@@ -114,8 +113,11 @@ public class JointRenderer : MonoBehaviour
                 Vector3 position = new Vector3(joints[i][0], joints[i][1], joints[i][2]);
                 jointsListSMPLify.Add(position);
 
+                // Alignment
+                Vector3 newPosition = (position * alignScaleFactor) + alignTransform;
+
                 // GameObject
-                jointGameObjectsSMPLify[i].transform.position = position * scaleFactorSMPLify;
+                jointGameObjectsSMPLify[i].transform.position = newPosition * scaleFactorDeepRobot;
             }
         }
 
@@ -178,12 +180,14 @@ public class JointRenderer : MonoBehaviour
     {
         // 스케일 계산
         float robotDistance = Vector3.Distance(jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_RShoulder], jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_LShoulder]);
-        float smplifyDistance = Vector3.Distance(jointsListSMPLify[16], jointsListSMPLify[17]); // 인덱스는 Python 코드에 기반하여 조정해야 할 수 있음
+        float smplifyDistance = Vector3.Distance(jointsListSMPLify[16], jointsListSMPLify[17]);
         float scale = robotDistance / smplifyDistance;
+
+
 
         // 위치 조정
         Vector3 robotPoint = jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_Neck];
-        Vector3 smplifyPoint = jointsListSMPLify[12]; // 인덱스는 Python 코드에 기반하여 조정해야 할 수 있음
+        Vector3 smplifyPoint = jointsListSMPLify[12] * scale;
         Vector3 displacement = robotPoint - smplifyPoint;
 
         return (scale, displacement);
