@@ -116,7 +116,8 @@ public class JointRenderer : MonoBehaviour
                 jointsListDeepRobot.Add(position);
 
                 // GameObject
-                jointGameObjectsDeepRobot[i].transform.position = position * scaleFactorDeepRobot;
+                //jointGameObjectsDeepRobot[i].transform.position = position * scaleFactorDeepRobot;
+                jointGameObjectsDeepRobot[i].transform.localPosition = position * scaleFactorDeepRobot;
             }
 
             // Bone position
@@ -158,7 +159,7 @@ public class JointRenderer : MonoBehaviour
                 Vector3 newPosition = (position * alignScaleFactor) + alignTransform;
 
                 // GameObject
-                jointGameObjectsSMPLify[i].transform.position = newPosition * scaleFactorDeepRobot;
+                jointGameObjectsSMPLify[i].transform.localPosition = newPosition * scaleFactorDeepRobot;
             }
 
             // Bone position
@@ -189,16 +190,21 @@ public class JointRenderer : MonoBehaviour
     private (float, Vector3) AdjustScaleAndPosition(List<Vector3> jointsListDeepRobot, List<Vector3> jointsListSMPLify)
     {
         // 스케일 계산
-        float robotDistance = Vector3.Distance(jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_RShoulder], jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_LShoulder]);
+        float robotDistance = Vector3.Distance(jointsListDeepRobot[1], jointsListDeepRobot[2]);
         float smplifyDistance = Vector3.Distance(jointsListSMPLify[16], jointsListSMPLify[17]);
         float scale = robotDistance / smplifyDistance;
 
+        // 위치 조정: 어깨 중심점을 기준으로 조정
+        Vector3 robotShoulderCenter = (jointsListDeepRobot[1] + jointsListDeepRobot[2]) / 2;
+        Vector3 smplifyShoulderCenter = (jointsListSMPLify[16] + jointsListSMPLify[17]) / 2 * scale;
+        Vector3 displacement = robotShoulderCenter - smplifyShoulderCenter;
 
-
+        /*
         // 위치 조정
         Vector3 robotPoint = jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_Neck];
         Vector3 smplifyPoint = jointsListSMPLify[12] * scale;
         Vector3 displacement = robotPoint - smplifyPoint;
+        */
 
         return (scale, displacement);
     }
