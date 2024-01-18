@@ -23,8 +23,11 @@ public class JointRenderer : MonoBehaviour
     private int jointCountDeepRobot = 13;
     private int jointCountSMPLify = 24;
 
-    public float scaleFactorDeepRobot = 0.01f;
-    public float scaleFactorSMPLify = 0.01f;
+    private float scaleFactorDeepRobot = 0.01f;
+    private float scaleFactorSMPLify = 0.01f;
+
+    private float alignScaleFactor = 1.0f;
+    private Vector3 alignTransform = new Vector3();
 
     // The parent index for each joint
     private int[] jointParentIndexDeepRobot = new int[] { 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -34,7 +37,8 @@ public class JointRenderer : MonoBehaviour
     void Start()
     {
         InitData();
-        DataLoader();
+        DataLoader(true);
+        DataLoader(false);
     }
 
     // Update is called once per frame
@@ -70,8 +74,11 @@ public class JointRenderer : MonoBehaviour
         }
     }
 
-    private void DataLoader()
+    private void DataLoader(bool calcAlign)
     {
+        List<Vector3> jointsListDeepRobot = new List<Vector3>();
+        List<Vector3> jointsListSMPLify = new List<Vector3>();
+
         // DeepRobot Joints
         if (jointGameObjectsDeepRobot.Count >= jointCountDeepRobot)
         {
@@ -84,14 +91,11 @@ public class JointRenderer : MonoBehaviour
             // Instantiate joints and store them in the list
             for (int i = 0; i < joints.Length; i++)
             {
-                float x = joints[i][0] * scaleFactorDeepRobot;
-                float y = joints[i][1] * scaleFactorDeepRobot;
-                float z = joints[i][2] * scaleFactorDeepRobot;
+                Vector3 position = new Vector3(joints[i][0], joints[i][1], joints[i][2]);
+                jointsListDeepRobot.Add(position);
 
-                if (i < 0 || i >= jointGameObjectsDeepRobot.Count)
-                    continue;
-
-                jointGameObjectsDeepRobot[i].transform.position = new Vector3(x, y, z);
+                // GameObject
+                jointGameObjectsDeepRobot[i].transform.position = position * scaleFactorDeepRobot;
             }
         }
 
@@ -107,9 +111,59 @@ public class JointRenderer : MonoBehaviour
             // Instantiate joints and store them in the list
             for (int i = 0; i < joints.Length; i++)
             {
-                float x = joints[i][0] * scaleFactorSMPLify;
-                float y = joints[i][1] * scaleFactorSMPLify;
-                float z = joints[i][2] * scaleFactorSMPLify;
+                Vector3 position = new Vector3(joints[i][0], joints[i][1], joints[i][2]);
+                jointsListSMPLify.Add(position);
+
+                // GameObject
+                jointGameObjectsSMPLify[i].transform.position = position * scaleFactorSMPLify;
+            }
+        }
+
+        // Calculate Alignment
+        if (calcAlign == true)
+            (alignScaleFactor, alignTransform) = AdjustScaleAndPosition(jointsListDeepRobot, jointsListSMPLify);
+    }
+
+    /*
+    private void DataLoader2()
+    {
+        // Load Json
+        string filePath = Directory.GetCurrentDirectory() + "/Data/f_" + frameIndex.ToString() + "_3_joint_3d.json";
+        string dataAsJson = File.ReadAllText(filePath);
+        var jointsDeepRobot = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
+
+        filePath = Directory.GetCurrentDirectory() + "/Data/f_" + frameIndex.ToString() + "_3_joint_3d_smplify4.json";
+        dataAsJson = File.ReadAllText(filePath);
+        var jointsSMPLify = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
+
+        // Align
+        AdjustScaleAndPosition(jointsDeepRobot, jointsSMPLify);
+
+
+        // DeepRobot Joints
+        if (jointGameObjectsDeepRobot.Count >= jointCountDeepRobot)
+        {
+            for (int i = 0; i < jointsDeepRobot.Length; i++)
+            {
+                float x = jointsDeepRobot[i][0] * scaleFactorDeepRobot;
+                float y = jointsDeepRobot[i][1] * scaleFactorDeepRobot;
+                float z = jointsDeepRobot[i][2] * scaleFactorDeepRobot;
+
+                if (i < 0 || i >= jointGameObjectsDeepRobot.Count)
+                    continue;
+
+                jointGameObjectsDeepRobot[i].transform.position = new Vector3(x, y, z);
+            }
+        }
+
+        // SMPLify Joints
+        if (jointGameObjectsSMPLify.Count >= jointCountSMPLify)
+        {
+            for (int i = 0; i < jointsSMPLify.Length; i++)
+            {
+                float x = jointsSMPLify[i][0] * scaleFactorSMPLify;
+                float y = jointsSMPLify[i][1] * scaleFactorSMPLify;
+                float z = jointsSMPLify[i][2] * scaleFactorSMPLify;
 
                 if (i < 0 || i >= jointGameObjectsSMPLify.Count)
                     continue;
@@ -117,5 +171,21 @@ public class JointRenderer : MonoBehaviour
                 jointGameObjectsSMPLify[i].transform.position = new Vector3(x, y, z);
             }
         }
-    }            
+    }
+    */
+
+    private (float, Vector3) AdjustScaleAndPosition(List<Vector3> jointsListDeepRobot, List<Vector3> jointsListSMPLify)
+    {
+        // 스케일 계산
+        float robotDistance = Vector3.Distance(jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_RShoulder], jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_LShoulder]);
+        float smplifyDistance = Vector3.Distance(jointsListSMPLify[16], jointsListSMPLify[17]); // 인덱스는 Python 코드에 기반하여 조정해야 할 수 있음
+        float scale = robotDistance / smplifyDistance;
+
+        // 위치 조정
+        Vector3 robotPoint = jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_Neck];
+        Vector3 smplifyPoint = jointsListSMPLify[12]; // 인덱스는 Python 코드에 기반하여 조정해야 할 수 있음
+        Vector3 displacement = robotPoint - smplifyPoint;
+
+        return (scale, displacement);
+    }
 }
