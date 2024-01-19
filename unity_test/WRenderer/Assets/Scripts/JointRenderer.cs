@@ -29,9 +29,8 @@ public class JointRenderer : MonoBehaviour
 
     // Internal use
     private int frameIndex = 1800;
-    //private int frameLastIndex = 3600;
     private int frameStartIndex = 1800;
-    private int frameLastIndex = 1805;
+    private int frameLastIndex = 2399;  // 3600;
 
     private int jointCountDeepRobot = 13;
     private int jointCountSMPLify = 24;
@@ -47,6 +46,7 @@ public class JointRenderer : MonoBehaviour
     private int[] jointParentIndexSMPLify = new int[] { 3, 0, 0, 6, 1, 2, 9, 4, 5, 12, 7, 8, 15, 9, 9, -1, 13, 14, 16, 17, 18, 19, 20, 21 };
 
 
+    // Playback
     private float nextActionTime = 0f;
     private float period = 1f / 30f; // 30 FPS에 해당하는 시간 간격
 
