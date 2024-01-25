@@ -30,7 +30,8 @@ public class SMPLRenderer : MonoBehaviour
                 // Arm
 
                 // Neck[0] - Left Shoulder[1] - Left Elbow[5]
-                Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.RightShoulder);
+                //Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.RightShoulder);
+                Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
                 if (jointTransform != null)
                     jointTransform.localRotation = CalcJointRotation(jointList[0], jointList[1], jointList[5]);
 
@@ -41,7 +42,8 @@ public class SMPLRenderer : MonoBehaviour
 
 
                 // Neck[0] - Right Shoulder[2] - Right Elbow[6]
-                jointTransform = animator.GetBoneTransform(HumanBodyBones.LeftShoulder);
+                //jointTransform = animator.GetBoneTransform(HumanBodyBones.LeftShoulder);
+                jointTransform = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
                 if (jointTransform != null)
                     jointTransform.localRotation = CalcJointRotation(jointList[0], jointList[2], jointList[6]);
 

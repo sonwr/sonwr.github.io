@@ -30,7 +30,7 @@ public class JointRenderer : MonoBehaviour
     // Internal use
     private int frameIndex = 1800;
     private int frameStartIndex = 1800;
-    private int frameLastIndex = 2399;  // 3600;
+    private int frameLastIndex = 3600; //2399;  // 3600;
 
     private int jointCountDeepRobot = 13;
     private int jointCountSMPLify = 24;
