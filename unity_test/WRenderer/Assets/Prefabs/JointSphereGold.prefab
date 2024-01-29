@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7619498299497134931}
   - component: {fileID: 6224516707997965338}
   m_Layer: 0
-  m_Name: JointSphere
+  m_Name: JointSphereGold
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 40a11244b170341beb28c60cbea9f94a, type: 2}
+  - {fileID: 2100000, guid: 75872bc65758a4365a0f180cc2f07824, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

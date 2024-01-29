@@ -207,6 +207,37 @@ Transform:
   - {fileID: 1309746544}
   m_Father: {fileID: 1343539238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &214496639
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 214496640}
+  m_Layer: 0
+  m_Name: GroundTruth
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &214496640
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 214496639}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 812798313}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
 --- !u!1 &233105785
 GameObject:
   m_ObjectHideFlags: 0
@@ -847,6 +878,7 @@ Transform:
   m_Children:
   - {fileID: 233105786}
   - {fileID: 2102138798}
+  - {fileID: 214496640}
   m_Father: {fileID: 1343539238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &812798314
@@ -863,14 +895,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointsParentDeepRobot: {fileID: 233105785}
   jointsParentSMPLify: {fileID: 2102138797}
-  jointPrefabDeepRobot: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
-  jointPrefabSMPLify: {fileID: 4196250119612486365, guid: e67cacba63299450785404e6d42114e8, type: 3}
-  bonePrefabDeepRobot: {fileID: 4775857794237226603, guid: 984ee16bc47bb4e6cb309b9599732cee, type: 3}
-  bonePrefabSMPLify: {fileID: 4775857794237226603, guid: 80cf9ade9777044348c77026e162623b, type: 3}
+  jointsParentGroundTruth: {fileID: 214496639}
+  jointPrefabDeepRobot: {fileID: 6415013243847641462, guid: e67cacba63299450785404e6d42114e8, type: 3}
+  jointPrefabSMPLify: {fileID: 4877670436941940438, guid: b8858b061703c4e62875a1bce60c15e0, type: 3}
+  jointPrefabGroundTruth: {fileID: 4196250119612486365, guid: d4a1ba8fd328941d4a54301829d3c39e, type: 3}
+  bonePrefabDeepRobot: {fileID: 8407310328037605672, guid: 75ccd6e107cb74387a7cfd2f5698aa39, type: 3}
+  bonePrefabSMPLify: {fileID: 7968909184019175351, guid: 80cf9ade9777044348c77026e162623b, type: 3}
+  bonePrefabGroundTruth: {fileID: 4775857794237226603, guid: f2b112d42a9074f9a873418a4bf7e045, type: 3}
   jointGameObjectsDeepRobot: []
   jointGameObjectsSMPLify: []
+  jointGameObjectsGroundTruth: []
   boneGameObjectsDeepRobot: []
   boneGameObjectsSMPLify: []
+  boneGameObjectsGroundTruth: []
 --- !u!1001 &965242229
 PrefabInstance:
   m_ObjectHideFlags: 0
