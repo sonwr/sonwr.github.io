@@ -269,6 +269,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 812798313}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
+--- !u!1 &261290912 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -7863586138991820771, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
+  m_PrefabInstance: {fileID: 485045441}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &261290915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 261290912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2af0598fd6d17466f930a4f71a9d6b27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jointRegressorJSON: {fileID: 4900000, guid: 1f633eea62f7e4fc6bc2598e4f6d6634, type: 3}
+  shapeParmsJSON: {fileID: 4900000, guid: 167c7da211114428e9a58f49ccf0ef2f, type: 3}
+  optimizePoseBlends: 0
+  jointRenderer: {fileID: 812798314}
+  animator: {fileID: 485045444}
 --- !u!4 &379760384 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: b903aa1ce6c7e4f15beac667a392f571, type: 3}
@@ -346,19 +368,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: SMPL_m_unityDoubleBlends_lbs_10_scale5_207_v1.0.0_GroundTruth
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5866666021909216657, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 485045445}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
+      addedObject: {fileID: 485045444}
+    - targetCorrespondingSourceObject: {fileID: -7863586138991820771, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 485045446}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 485045447}
+      addedObject: {fileID: 261290915}
   m_SourcePrefab: {fileID: 100100000, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
 --- !u!4 &485045442 stripped
 Transform:
@@ -370,7 +390,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 748a28dfca4414ebcb57218beca7fbc9, type: 3}
   m_PrefabInstance: {fileID: 485045441}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &485045445
+--- !u!95 &485045444
 Animator:
   serializedVersion: 5
   m_ObjectHideFlags: 0
@@ -391,74 +411,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &485045446
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 485045443}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2af0598fd6d17466f930a4f71a9d6b27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  jointRegressorJSON: {fileID: 4900000, guid: 1f633eea62f7e4fc6bc2598e4f6d6634, type: 3}
-  shapeParmsJSON: {fileID: 4900000, guid: 167c7da211114428e9a58f49ccf0ef2f, type: 3}
-  optimizePoseBlends: 0
---- !u!137 &485045447
-SkinnedMeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 485045443}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 3
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  serializedVersion: 2
-  m_Quality: 0
-  m_UpdateWhenOffscreen: 0
-  m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 0}
-  m_Bones: []
-  m_BlendShapeWeights: []
-  m_RootBone: {fileID: 0}
-  m_AABB:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_DirtyAABB: 0
 --- !u!1 &563046494
 GameObject:
   m_ObjectHideFlags: 0
@@ -1093,7 +1045,15 @@ MonoBehaviour:
   boneGameObjectsDeepRobot: []
   boneGameObjectsSMPLify: []
   boneGameObjectsGroundTruth: []
-  smplBlendshapesGroundTruth: {fileID: 485045446}
+  frameIndex: 2100
+  frameStartIndex: 2100
+  frameLastIndex: 2350
+  poseDataGroundTruth:
+    BoneNames: []
+    BoneParents: 
+    num_frames: 0
+    pose_parameters: []
+  smplBlendshapesGroundTruth: {fileID: 261290915}
 --- !u!1001 &965242229
 PrefabInstance:
   m_ObjectHideFlags: 0

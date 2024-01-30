@@ -34,9 +34,9 @@ public class JointRenderer : MonoBehaviour
     public List<GameObject> boneGameObjectsGroundTruth;
 
     // Internal use
-    private int frameIndex = 2100;//1800;
-    private int frameStartIndex = 2100;//1800;
-    private int frameLastIndex = 2105;//3600; //2399;  // 3600;
+    public int frameIndex = 2100;//1800;
+    public int frameStartIndex = 2100;//1800;
+    public int frameLastIndex = 2350;//3600; //2399;  // 3600;
 
     private int jointCountDeepRobot = 13;
     private int jointCountSMPLify = 24;
@@ -57,8 +57,9 @@ public class JointRenderer : MonoBehaviour
     private int[] jointParentIndexGroundTruth = new int[] { 1, -1, 1, 2, 3, 1, 5, 6, 1, 8, 9, 10, 8, 12, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
     // Ground Truth
-    PoseData poseDataGroundTruth;
-    ShapeData shapeDataGroundTruth;
+    JointDataGroundTruth jointDataGroundTruth;
+    ShapeDataGroundTruth shapeDataGroundTruth;
+    public PoseDataGroundTruth poseDataGroundTruth;
 
     // SMPL
     public SMPLBlendshapes smplBlendshapesGroundTruth;
@@ -74,10 +75,13 @@ public class JointRenderer : MonoBehaviour
         InitData();
 
         string filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_Joints_World3D_opose25_smooth.json";
-        poseDataGroundTruth = LoadGroundTruthPoseData(filePath);
+        jointDataGroundTruth = LoadGroundTruthJointData(filePath);
 
         filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Shape.json";
         shapeDataGroundTruth = LoadGroundTruthShapeData(filePath);
+
+        filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Pose.json";
+        poseDataGroundTruth = LoadGroundTruthPoseData(filePath);        
 
         DataLoader(true);
         DataLoader(false);
@@ -246,7 +250,7 @@ public class JointRenderer : MonoBehaviour
         // Ground Truth Joints
         if (jointGameObjectsGroundTruth.Count >= jointCountGroundTruth)
         {
-            FrameData frameData = poseDataGroundTruth.Set[frameIndex - frameStartIndex];
+            JointDataFrame frameData = jointDataGroundTruth.Set[frameIndex - frameStartIndex];
             var joints = frameData.J;
 
             // Instantiate joints and store them in the list
@@ -281,9 +285,10 @@ public class JointRenderer : MonoBehaviour
                 boneGameObjectsGroundTruth[i].SetActive(true);
             }
 
-            // SMPL Shape
-            FrameShapeData frameShapeData = shapeDataGroundTruth.shape_param_frames[frameIndex - frameStartIndex];
-            smplBlendshapesGroundTruth.setShapeParms(frameShapeData.S);
+            // SMPL Shape & Pose Parameters
+            ShapeDataFrame shapeDataFrame = shapeDataGroundTruth.shape_param_frames[frameIndex - frameStartIndex];
+            PoseDataFrame poseDataFrame = poseDataGroundTruth.pose_parameters[frameIndex - frameStartIndex];
+            smplBlendshapesGroundTruth.setShapeParms(shapeDataFrame.S, poseDataFrame.R);
         }
 
         // Calculate Alignment
@@ -298,33 +303,49 @@ public class JointRenderer : MonoBehaviour
         }
     }
 
-    private PoseData LoadGroundTruthPoseData(string filePath)
+    private JointDataGroundTruth LoadGroundTruthJointData(string filePath)
     {
         try
         {
             string jsonData = File.ReadAllText(filePath);
-            PoseData poseData = JsonConvert.DeserializeObject<PoseData>(jsonData);
+            JointDataGroundTruth poseData = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
             return poseData;
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError("Error reading pose data: " + ex.Message);
+            UnityEngine.Debug.LogError("Error reading joint data: " + ex.Message);
             return null;
         }
     }
 
-    private ShapeData LoadGroundTruthShapeData(string filePath)
+    private ShapeDataGroundTruth LoadGroundTruthShapeData(string filePath)
     {
         try
         {
             string jsonData = File.ReadAllText(filePath);
-            ShapeData shapeData = JsonConvert.DeserializeObject<ShapeData>(jsonData);
+            ShapeDataGroundTruth shapeData = JsonConvert.DeserializeObject<ShapeDataGroundTruth>(jsonData);
             return shapeData;
 
         }
         catch (Exception ex)
         {
             UnityEngine.Debug.LogError("Error reading shape data: " + ex.Message);
+            return null;
+        }
+    }
+
+    private PoseDataGroundTruth LoadGroundTruthPoseData(string filePath)
+    {
+        try
+        {
+            string jsonData = File.ReadAllText(filePath);
+            PoseDataGroundTruth poseData = JsonConvert.DeserializeObject<PoseDataGroundTruth>(jsonData);
+            return poseData;
+
+        }
+        catch (Exception ex)
+        {
+            UnityEngine.Debug.LogError("Error reading pose data: " + ex.Message);
             return null;
         }
     }

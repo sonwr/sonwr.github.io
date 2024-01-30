@@ -49,9 +49,8 @@ on improving the model and in making it available on more platforms.
 	
 */
 
-using UnityEngine;
-using LightweightMatrixCSharp;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class SMPLBlendshapes : MonoBehaviour {
 
@@ -72,7 +71,11 @@ public class SMPLBlendshapes : MonoBehaviour {
 	private int _numShapeParms = 10;
 	private float[] _shapeParms;
 
-	void Awake()
+	private float temp = 0;
+    public JointRenderer jointRenderer;
+    public Animator animator;
+
+    void Awake()
 	{
 		targetMeshRenderer = GetComponent<SkinnedMeshRenderer> ();
 	}
@@ -138,9 +141,31 @@ public class SMPLBlendshapes : MonoBehaviour {
 	/* 	Actions to perform at each time step
 	 */ 
 	void Update()
-	{
-		// Update the corrective pose blendshapes at each new time step 
-		setPoseBlendValues ();
+    {
+		/*
+		if (jointRenderer != null)
+		{
+            PoseDataFrame poseDataFrame = jointRenderer.poseDataGroundTruth.pose_parameters[jointRenderer.frameIndex - jointRenderer.frameStartIndex];
+
+			List<List<float>> temp = poseDataFrame.R;
+
+			int jointIndex = 19;
+            int jointIndex2 = 20;
+
+            Quaternion temp2 = new Quaternion(temp[jointIndex][0], temp[jointIndex][1], temp[jointIndex][2], temp[jointIndex][3]);
+            Quaternion temp3 = new Quaternion(temp[jointIndex2][0], temp[jointIndex2][1], temp[jointIndex2][2], temp[jointIndex2][3]);
+
+            Quaternion temp4 = Quaternion.Inverse(temp2) * temp3;
+
+            //Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
+            Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
+            if (jointTransform != null)
+				jointTransform.localRotation = temp4;
+		}
+		*/
+
+        // Update the corrective pose blendshapes at each new time step 
+        setPoseBlendValues();
 
 		// Quit application if ESC key is pressed
 		if (Input.GetKey("escape"))
@@ -311,16 +336,52 @@ public class SMPLBlendshapes : MonoBehaviour {
 		calculateJoints();
 	}
 
-	public void setShapeParms(List<float> parms)
+	public void setShapeParms(List<float> shapeParams, List<List<float>> poseParams)
     {
-		for (int i = 0; i < parms.Count; i++)
-			_shapeParms[i] = parms[i];
+		for (int i = 0; i < shapeParams.Count; i++)
+			_shapeParms[i] = shapeParams[i] / 100.0f;// + Random.Range(0, 1);
 
         // 2. Set shape parameters (betas) of avg mesh in FBX model 
         // 	  to shape-parameters (betas) from user's JSON file
         setShapeBlendValues();
 
         // 3. Calculate joint-locations from betas & update joints of the FBX model
-        calculateJoints();
+        //calculateJoints();
+
+        float[] trans = new float[3];
+		trans[1] = 1;
+
+        int count = poseParams.Count;
+		float[][] pose = new float[count][];
+		for(int i=0; i<count; i++)
+		{
+            pose[i] = new float[poseParams[i].Count];
+        }
+
+
+		// TEMP
+		List<List<float>> temp = poseParams;
+
+        int jointIndex = 19;
+        int jointIndex2 = 20;
+
+        Quaternion temp2 = new Quaternion(temp[jointIndex][0], temp[jointIndex][1], temp[jointIndex][2], temp[jointIndex][3]);
+        Quaternion temp3 = new Quaternion(temp[jointIndex2][0], temp[jointIndex2][1], temp[jointIndex2][2], temp[jointIndex2][3]);
+        Quaternion temp4 = Quaternion.Inverse(temp2) * temp3;
+
+
+		pose[16][0] = temp4.x;
+        pose[16][1] = temp4.y;
+        pose[16][2] = temp4.z;
+        pose[16][3] = temp4.w;
+
+
+        //_boneNameToJointIndex.Add("L_Shoulder", 16);
+        //_boneNameToJointIndex.Add("R_Shoulder", 17);
+
+        //pose[12][0] = -temp;
+        //temp += 0.01f;
+
+        _modifyBones.updateBoneAngles(pose, trans);
     }
 }

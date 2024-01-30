@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 
 [Serializable]
-public class FrameData
+public class JointDataFrame
 {
     public int F; // Frame Index
     public float[][] J; // Joints Data
 }
 
 [Serializable]
-public class Header
+public class JointDataHeader
 {
     public List<string> Comment;
     public List<string> JOINT_NAMES;
@@ -19,8 +19,8 @@ public class Header
 }
 
 [Serializable]
-public class PoseData
+public class JointDataGroundTruth
 {
-    public Header Header;
-    public List<FrameData> Set;
+    public JointDataHeader Header;
+    public List<JointDataFrame> Set;
 }
