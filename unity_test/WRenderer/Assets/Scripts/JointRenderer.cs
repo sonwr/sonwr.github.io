@@ -58,6 +58,10 @@ public class JointRenderer : MonoBehaviour
 
     // Ground Truth
     PoseData poseDataGroundTruth;
+    ShapeData shapeDataGroundTruth;
+
+    // SMPL
+    public SMPLBlendshapes smplBlendshapesGroundTruth;
 
     // Playback
     private float nextActionTime = 0f;
@@ -71,6 +75,9 @@ public class JointRenderer : MonoBehaviour
 
         string filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_Joints_World3D_opose25_smooth.json";
         poseDataGroundTruth = LoadGroundTruthPoseData(filePath);
+
+        filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Shape.json";
+        shapeDataGroundTruth = LoadGroundTruthShapeData(filePath);
 
         DataLoader(true);
         DataLoader(false);
@@ -274,6 +281,9 @@ public class JointRenderer : MonoBehaviour
                 boneGameObjectsGroundTruth[i].SetActive(true);
             }
 
+            // SMPL Shape
+            FrameShapeData frameShapeData = shapeDataGroundTruth.shape_param_frames[frameIndex - frameStartIndex];
+            smplBlendshapesGroundTruth.setShapeParms(frameShapeData.S);
         }
 
         // Calculate Alignment
@@ -303,7 +313,22 @@ public class JointRenderer : MonoBehaviour
         }
     }
 
-    
+    private ShapeData LoadGroundTruthShapeData(string filePath)
+    {
+        try
+        {
+            string jsonData = File.ReadAllText(filePath);
+            ShapeData shapeData = JsonConvert.DeserializeObject<ShapeData>(jsonData);
+            return shapeData;
+
+        }
+        catch (Exception ex)
+        {
+            UnityEngine.Debug.LogError("Error reading shape data: " + ex.Message);
+            return null;
+        }
+    }
+
     private (float, Vector3) AdjustScaleAndPosition(List<Vector3> jointsListDeepRobot, List<Vector3> jointsListSMPLify)
     {
         // 스케일 계산
