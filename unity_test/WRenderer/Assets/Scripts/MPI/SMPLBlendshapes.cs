@@ -371,7 +371,7 @@ public class SMPLBlendshapes : MonoBehaviour {
         Quaternion[] localRotations = convertLocalRotation(globalRotations);
 
 
-		// 3. Reorder
+		// 3. Reorder (Ground Truth order -> SMPL order)
         string[] boneNames = new string[] {
 			"Pelvis", "L_Hip", "L_Knee", "L_Ankle", "L_Foot", "R_Hip", "R_Knee",
 			"R_Ankle", "R_Foot", "SpineL", "SpineM", "SpineH", "Neck", "Head",
