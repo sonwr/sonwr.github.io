@@ -50,6 +50,7 @@ on improving the model and in making it available on more platforms.
 */
 
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 
 public class SMPLBlendshapes : MonoBehaviour {
@@ -142,27 +143,8 @@ public class SMPLBlendshapes : MonoBehaviour {
 	 */ 
 	void Update()
     {
-		/*
-		if (jointRenderer != null)
-		{
-            PoseDataFrame poseDataFrame = jointRenderer.poseDataGroundTruth.pose_parameters[jointRenderer.frameIndex - jointRenderer.frameStartIndex];
-
-			List<List<float>> temp = poseDataFrame.R;
-
-			int jointIndex = 19;
-            int jointIndex2 = 20;
-
-            Quaternion temp2 = new Quaternion(temp[jointIndex][0], temp[jointIndex][1], temp[jointIndex][2], temp[jointIndex][3]);
-            Quaternion temp3 = new Quaternion(temp[jointIndex2][0], temp[jointIndex2][1], temp[jointIndex2][2], temp[jointIndex2][3]);
-
-            Quaternion temp4 = Quaternion.Inverse(temp2) * temp3;
-
-            //Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
-            Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
-            if (jointTransform != null)
-				jointTransform.localRotation = temp4;
-		}
-		*/
+		// TODO: Update Pose Using Unity Animator
+        //updatePoseUsingAnimator()
 
         // Update the corrective pose blendshapes at each new time step 
         setPoseBlendValues();
@@ -172,10 +154,30 @@ public class SMPLBlendshapes : MonoBehaviour {
 			Application.Quit();
 	}
 
+	void updatePoseUsingAnimator()
+    {
+		if (jointRenderer != null)
+		{
+            PoseDataFrame poseDataFrame = jointRenderer.poseDataGroundTruth.pose_parameters[jointRenderer.frameIndex - jointRenderer.frameStartIndex];
+			List<List<float>> rotationParameters = poseDataFrame.R;
 
-	/*	Set the corrective pose blendshape values from current pose-parameters (joint angles)
-	 */ 
-	void setPoseBlendValues()
+			int parentJointIndex = 19;	// R_Collar
+            int jointIndex = 20;	// R_Shoulder
+
+            Quaternion parentJointGlobalRotation = new Quaternion(rotationParameters[parentJointIndex][0], rotationParameters[parentJointIndex][1], rotationParameters[parentJointIndex][2], rotationParameters[parentJointIndex][3]);
+            Quaternion jointGlobalRotation = new Quaternion(rotationParameters[jointIndex][0], rotationParameters[jointIndex][1], rotationParameters[jointIndex][2], rotationParameters[jointIndex][3]);
+            Quaternion localRotation = Quaternion.Inverse(parentJointGlobalRotation) * jointGlobalRotation;
+
+            Transform jointTransform = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
+            if (jointTransform != null)
+				jointTransform.localRotation = localRotation;
+		}
+    }
+
+
+    /*	Set the corrective pose blendshape values from current pose-parameters (joint angles)
+	 */
+    void setPoseBlendValues()
 	{
 		Transform[] _bones = _modifyBones.getBones();
 		Dictionary<string, int> _boneNameToJointIndex = _modifyBones.getB2J_indices();
@@ -348,40 +350,90 @@ public class SMPLBlendshapes : MonoBehaviour {
         // 3. Calculate joint-locations from betas & update joints of the FBX model
         //calculateJoints();
 
-        float[] trans = new float[3];
-		trans[1] = 1;
+        // TODO: Update Pose Rotation
+        float[] trans = new float[3] { 0.0f, 1.0f, 0.0f };
+        float[][] pose = convertGroundTruthRotationToSMPL(poseParams);
+        _modifyBones.updateBoneAngles(pose, trans);
+    }
 
-        int count = poseParams.Count;
-		float[][] pose = new float[count][];
-		for(int i=0; i<count; i++)
-		{
-            pose[i] = new float[poseParams[i].Count];
+	// Ground Truth 결과 (Rotation Parameter)를 SMPL의 Pose Parameter 형태로 변환하는 함수
+    private float[][] convertGroundTruthRotationToSMPL(List<List<float>> rotationParameters)
+	{
+		// 1. convert Ground Truth data to Global Rotation Array
+        Quaternion[] globalRotations = new Quaternion[rotationParameters.Count];
+
+        for (int i = 0; i < rotationParameters.Count; i++)
+        {
+            globalRotations[i] = CreateQuaternionFromList(rotationParameters[i]);
         }
 
-
-		// TEMP
-		List<List<float>> temp = poseParams;
-
-        int jointIndex = 19;
-        int jointIndex2 = 20;
-
-        Quaternion temp2 = new Quaternion(temp[jointIndex][0], temp[jointIndex][1], temp[jointIndex][2], temp[jointIndex][3]);
-        Quaternion temp3 = new Quaternion(temp[jointIndex2][0], temp[jointIndex2][1], temp[jointIndex2][2], temp[jointIndex2][3]);
-        Quaternion temp4 = Quaternion.Inverse(temp2) * temp3;
+		// 2. Local Rotation
+        Quaternion[] localRotations = convertLocalRotation(globalRotations);
 
 
-		pose[16][0] = temp4.x;
-        pose[16][1] = temp4.y;
-        pose[16][2] = temp4.z;
-        pose[16][3] = temp4.w;
+		// 3. Reorder
+        string[] boneNames = new string[] {
+			"Pelvis", "L_Hip", "L_Knee", "L_Ankle", "L_Foot", "R_Hip", "R_Knee",
+			"R_Ankle", "R_Foot", "SpineL", "SpineM", "SpineH", "Neck", "Head",
+			"L_Collar", "L_Shoulder", "L_Elbow", "L_Wrist", "L_Hand", "R_Collar",
+			"R_Shoulder", "R_Elbow", "R_Wrist", "R_Hand"
+		};
 
+		Dictionary<string, int> boneNameToJointIndexSMPL = new Dictionary<string, int>
+		{
+			{"Pelvis", 0}, {"L_Hip", 1}, {"R_Hip", 2}, {"Spine1", 3}, {"L_Knee", 4},
+			{"R_Knee", 5}, {"Spine2", 6}, {"L_Ankle", 7}, {"R_Ankle", 8}, {"Spine3", 9},
+			{"L_Foot", 10}, {"R_Foot", 11}, {"Neck", 12}, {"L_Collar", 13},
+			{"R_Collar", 14}, {"Head", 15}, {"L_Shoulder", 16}, {"R_Shoulder", 17},
+			{"L_Elbow", 18}, {"R_Elbow", 19}, {"L_Wrist", 20}, {"R_Wrist", 21},
+			{"L_Hand", 22}, {"R_Hand", 23}
+		};
 
-        //_boneNameToJointIndex.Add("L_Shoulder", 16);
-        //_boneNameToJointIndex.Add("R_Shoulder", 17);
+        Quaternion[] reorderedRotations = new Quaternion[boneNames.Length];
+        for (int i = 0; i < boneNames.Length; i++)
+        {
+            if (boneNameToJointIndexSMPL.TryGetValue(boneNames[i], out int newIndex))
+            {
+                reorderedRotations[newIndex] = localRotations[i];
+            }
+        }
 
-        //pose[12][0] = -temp;
-        //temp += 0.01f;
+		// 4. convert to SMPL pose parameter format
+        float[][] rotationsAsFloats = new float[reorderedRotations.Length][];
 
-        _modifyBones.updateBoneAngles(pose, trans);
+        for (int i = 0; i < reorderedRotations.Length; i++)
+        {
+            rotationsAsFloats[i] = new float[4];
+            rotationsAsFloats[i][0] = reorderedRotations[i].x;
+            rotationsAsFloats[i][1] = reorderedRotations[i].y;
+            rotationsAsFloats[i][2] = reorderedRotations[i].z;
+            rotationsAsFloats[i][3] = reorderedRotations[i].w;
+        }
+
+		return rotationsAsFloats;
+    }
+
+    // Global Rotation 을 Local Rotation 으로 변환하는 함수
+    private Quaternion[] convertLocalRotation(Quaternion[] globalRotations)
+	{
+        int[] boneParents = new int[] { -1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 11, 14, 15, 16, 17, 11, 19, 20, 21, 22};
+
+        Quaternion[] localRotations = new Quaternion[globalRotations.Length];
+
+        for (int i = 0; i < globalRotations.Length; i++)
+        {
+            int parentIndex = boneParents[i];
+            if (parentIndex == -1)
+                localRotations[i] = globalRotations[i];
+            else
+                localRotations[i] = Quaternion.Inverse(globalRotations[parentIndex]) * globalRotations[i];
+        }
+
+		return localRotations;
+    }
+
+    private Quaternion CreateQuaternionFromList(List<float> rotationList)
+    {
+        return new Quaternion(rotationList[0], -rotationList[1], -rotationList[2], rotationList[3]);
     }
 }

@@ -295,7 +295,6 @@ public class JointRenderer : MonoBehaviour
         if (calcAlign == true)
         {
             // DeepRobot <-> SMPLify
-            //(alignScaleFactorSMPLify, alignTransformSMPLify) = AdjustScaleAndPosition(jointsListDeepRobot, jointsListSMPLify);
             (alignScaleFactorSMPLify, alignTransformSMPLify) = AdjustScaleAndPosition(jointsListDeepRobot[1], jointsListDeepRobot[2], jointsListSMPLify[16], jointsListSMPLify[17]);
 
             // DeepRobot <-> GroundTruth
@@ -349,27 +348,6 @@ public class JointRenderer : MonoBehaviour
             return null;
         }
     }
-
-    private (float, Vector3) AdjustScaleAndPosition(List<Vector3> jointsListDeepRobot, List<Vector3> jointsListSMPLify)
-    {
-        // 스케일 계산
-        float robotDistance = Vector3.Distance(jointsListDeepRobot[1], jointsListDeepRobot[2]);
-        float smplifyDistance = Vector3.Distance(jointsListSMPLify[16], jointsListSMPLify[17]);
-        float scale = robotDistance / smplifyDistance;
-
-        // 위치 조정: 어깨 중심점을 기준으로 조정
-        Vector3 robotShoulderCenter = (jointsListDeepRobot[1] + jointsListDeepRobot[2]) / 2;
-        Vector3 smplifyShoulderCenter = (jointsListSMPLify[16] + jointsListSMPLify[17]) / 2 * scale;
-        Vector3 displacement = robotShoulderCenter - smplifyShoulderCenter;
-
-        // 위치 조정
-        //Vector3 robotPoint = jointsListDeepRobot[(int)JOINT_IDX_3D.CAPSKEL_Neck];
-        //Vector3 smplifyPoint = jointsListSMPLify[12] * scale;
-        //Vector3 displacement = robotPoint - smplifyPoint;
-
-        return (scale, displacement);
-    }
-    
 
     private (float, Vector3) AdjustScaleAndPosition(Vector3 LShoulderDeepRobot, Vector3 RShoulderDeepRobot, Vector3 LShoulderSMPLify, Vector3 RShoulderSMPLify)
     {
