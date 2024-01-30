@@ -72,7 +72,7 @@ public class SMPLBlendshapes : MonoBehaviour {
 	private int _numShapeParms = 10;
 	private float[] _shapeParms;
 
-	private float temp = 0;
+    // Unity Animator를 이용해서 Pose를 업데이트
     public JointRenderer jointRenderer;
     public Animator animator;
 
@@ -143,7 +143,7 @@ public class SMPLBlendshapes : MonoBehaviour {
 	 */ 
 	void Update()
     {
-		// TODO: Update Pose Using Unity Animator
+        // Unity Animator를 이용해서 Pose를 업데이트
         //updatePoseUsingAnimator()
 
         // Update the corrective pose blendshapes at each new time step 
@@ -154,7 +154,8 @@ public class SMPLBlendshapes : MonoBehaviour {
 			Application.Quit();
 	}
 
-	void updatePoseUsingAnimator()
+    // Unity Animator를 이용해서 Pose를 업데이트하는 함
+    void updatePoseUsingAnimator()
     {
 		if (jointRenderer != null)
 		{
