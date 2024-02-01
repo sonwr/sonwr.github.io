@@ -14,8 +14,6 @@ public class BodyData : MonoBehaviour
     private List<GameObject> jointGameObjects;
     private List<GameObject> boneGameObjects;
 
-    private float scaleFactorDeepRobot = 0.01f;
-
     public BodyData(string modelName)
 	{
         this.modelName = modelName;
@@ -49,12 +47,61 @@ public class BodyData : MonoBehaviour
         if (jointFrameList == null || jointFrameList.Count <= idx)
             return;
 
+        // Joint
         JointData jointData = jointFrameList[idx];
 
         for(int i=0; i<jointData.jointList.Count; i++)
         {
             Vector3 joint = jointData.jointList[i];
-            jointGameObjects[i].transform.localPosition = joint * scaleFactorDeepRobot;
+            jointGameObjects[i].transform.localPosition = joint;
+
+            if (joint == Vector3.zero)
+                jointGameObjects[i].SetActive(false);
+            else
+                jointGameObjects[i].SetActive(true);
+        }
+
+        // Bone
+        for (int i = 0; i < jointData.jointList.Count; i++)
+        {
+            if (JointData.jointParentIndexOpenpose[i] < 0)
+                continue;
+
+            GameObject childJoint = jointGameObjects[i];
+            // 기존 부모 대신 재귀적으로 활성 상태인 부모를 찾습니다.
+            GameObject parentJoint = FindActiveParent(i);
+
+            // 활성 상태인 부모를 찾지 못한 경우, 이번 반복을 건너뜁니다.
+            if (childJoint.activeSelf == false || parentJoint == null)
+                continue;
+
+            Vector3 direction = childJoint.transform.position - parentJoint.transform.position;
+            float distance = direction.magnitude;
+            direction.Normalize();
+
+            boneGameObjects[i].transform.position = parentJoint.transform.position + direction * distance * 0.5f;
+            boneGameObjects[i].transform.up = direction;
+            boneGameObjects[i].transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
+            boneGameObjects[i].SetActive(true);
+        }
+    }
+
+    // 활성 상태인 부모 GameObject를 재귀적으로 찾는 함수
+    GameObject FindActiveParent(int currentIndex)
+    {
+        if (currentIndex < 0)
+        {
+            return null;
+        }
+
+        int parentIndex = JointData.jointParentIndexOpenpose[currentIndex];
+        if (jointGameObjects[parentIndex].activeSelf)
+        {
+            return jointGameObjects[parentIndex];
+        }
+        else
+        {
+            return FindActiveParent(parentIndex);
         }
     }
 
@@ -75,7 +122,13 @@ public class BodyData : MonoBehaviour
             List<Vector3> jointList = new List<Vector3>();
             for (int j = 0; j < joints.Length; j++)
             {
-                Vector3 position = new Vector3(joints[j][0], joints[j][1], joints[j][2]);
+                float scale = 0.01f;
+
+                float x = joints[j][0] * scale;
+                float y = joints[j][1] * scale;
+                float z = joints[j][2] * scale;
+
+                Vector3 position = new Vector3(x, y, z);
                 jointList.Add(position);
             }
 

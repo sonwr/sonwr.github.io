@@ -30,6 +30,9 @@ public class JointData
         "REye", "LEye", "REar", "LEar", "LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel"
     };
 
+
+    public static int[] jointParentIndexOpenpose = new int[] { 1, -1, 1, 2, 3, 1, 5, 6, 1, 8, 9, 10, 8, 12, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+
     public static int jointCount = 25;
     public static int poseCount = 24;
     public static int shapeCount = 24;
