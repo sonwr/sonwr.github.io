@@ -97,6 +97,40 @@ public class BodyData : MonoBehaviour
             return FindActiveParent(parentIndex);
     }
 
+    public void LoadFileSMPLify(int frameStartIndex, int frameLastIndex)
+    {
+        jointFrameList = new List<JointData>();
+
+        for (int i = frameStartIndex; i < frameLastIndex; i++)
+        {
+            JointData jointData = new JointData(i);
+
+            // Read and process the JSON file
+            string filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_3_joint_3d_smplify4.json";
+            string dataAsJson = File.ReadAllText(filePath);
+            var joints = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
+
+            // Instantiate joints and store them in the list
+            List<Vector3> jointList = new List<Vector3>();
+            for (int j = 0; j < joints.Length; j++)
+            {
+                float scale = 1.0f;
+
+                float x = joints[j][0] * scale;
+                float y = joints[j][1] * scale;
+                float z = joints[j][2] * scale;
+
+                Vector3 position = new Vector3(x, y, z);
+                jointList.Add(position);
+            }
+
+            // Convert 
+            jointData.jointList = ConvertJointDataOrder(jointList);
+
+            jointFrameList.Add(jointData);
+        }
+    }
+
     public void LoadFileDeepRobot(int frameStartIndex, int frameLastIndex)
     {
         jointFrameList = new List<JointData>();
@@ -125,38 +159,31 @@ public class BodyData : MonoBehaviour
             }
 
             // Convert 
-            jointData.jointList = ConvertJointDataOrder(jointList);
+            jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
 
             jointFrameList.Add(jointData);
         }
     }
 
-    private List<Vector3> ConvertJointDataOrder(List<Vector3> deepRobotData)
+
+    private List<Vector3> ConvertJointDataOrder(List<Vector3> jointData, string[] srcOrder, string[] destOrder)
     {
-        List<Vector3> openposeData = new List<Vector3>(new Vector3[JointData.boneIndexNamesOpenpose.Length]);
-        Dictionary<string, int> deepRobotIndexMap = new Dictionary<string, int>();
+        List<Vector3> reorderJointData = new List<Vector3>(new Vector3[destOrder.Length]);
+        Dictionary<string, int> srcIndexMap = new Dictionary<string, int>();
 
-        // DeepRobotJoint 인덱스 맵 구축
-        for (int i = 0; i < JointData.boneIndexNamesDeepRobotJoint.Length; i++)
-        {
-            deepRobotIndexMap[JointData.boneIndexNamesDeepRobotJoint[i]] = i;
-        }
+        for (int i = 0; i < srcOrder.Length; i++)
+            srcIndexMap[srcOrder[i]] = i;
 
-        // Openpose 데이터로 변환
-        for (int i = 0; i < JointData.boneIndexNamesOpenpose.Length; i++)
+        for (int i = 0; i < destOrder.Length; i++)
         {
-            string boneName = JointData.boneIndexNamesOpenpose[i];
-            if (deepRobotIndexMap.ContainsKey(boneName))
-            {
-                openposeData[i] = deepRobotData[deepRobotIndexMap[boneName]];
-            }
+            string boneName = destOrder[i];
+            if (srcIndexMap.ContainsKey(boneName))
+                reorderJointData[i] = jointData[srcIndexMap[boneName]];
             else
-            {
-                openposeData[i] = Vector3.zero; // 데이터가 없는 경우 Vector3.zero로 설정
-            }
+                reorderJointData[i] = Vector3.zero;
         }
 
-        return openposeData;
+        return reorderJointData;
     }
 }
 
