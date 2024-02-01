@@ -298,7 +298,7 @@ public class JointRenderer : MonoBehaviour
             (alignScaleFactorSMPLify, alignTransformSMPLify) = AdjustScaleAndPosition(jointsListDeepRobot[1], jointsListDeepRobot[2], jointsListSMPLify[16], jointsListSMPLify[17]);
 
             // DeepRobot <-> GroundTruth
-            (alignScaleFactorGroundTruth, alignTransformGroundTruth) = AdjustScaleAndPosition(jointsListDeepRobot[1], jointsListDeepRobot[2], jointsListGroundTruth[2], jointsListGroundTruth[5]);
+            //(alignScaleFactorGroundTruth, alignTransformGroundTruth) = AdjustScaleAndPosition(jointsListDeepRobot[1], jointsListDeepRobot[2], jointsListGroundTruth[2], jointsListGroundTruth[5]);
         }
     }
 

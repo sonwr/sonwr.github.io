@@ -46,7 +46,7 @@ public enum JOINT_MODEL_TYPE
 
 
 [System.Serializable]
-public class JointData
+public class JointData2
 {
     public List<List<float>> jointPositions;
 }
