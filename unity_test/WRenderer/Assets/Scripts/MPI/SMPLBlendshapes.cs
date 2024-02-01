@@ -143,8 +143,8 @@ public class SMPLBlendshapes : MonoBehaviour {
 	 */ 
 	void Update()
     {
-        // Unity Animator를 이용해서 Pose를 업데이트
-        //updatePoseUsingAnimator()
+		// Unity Animator를 이용해서 Pose를 업데이트
+		//updatePoseUsingAnimator();
 
         // Update the corrective pose blendshapes at each new time step 
         setPoseBlendValues();
@@ -157,6 +157,8 @@ public class SMPLBlendshapes : MonoBehaviour {
     // Unity Animator를 이용해서 Pose를 업데이트하는 함
     void updatePoseUsingAnimator()
     {
+
+		/*
 		if (jointRenderer != null)
 		{
             PoseDataFrame poseDataFrame = jointRenderer.poseDataGroundTruth.pose_parameters[jointRenderer.frameIndex - jointRenderer.frameStartIndex];
@@ -173,6 +175,7 @@ public class SMPLBlendshapes : MonoBehaviour {
             if (jointTransform != null)
 				jointTransform.localRotation = localRotation;
 		}
+		*/
     }
 
 
@@ -351,7 +354,17 @@ public class SMPLBlendshapes : MonoBehaviour {
 
         // Update Pose Rotation
         float[] trans = new float[3] { 0.0f, 0.0f, 0.0f };
-        float[][] pose = convertGroundTruthRotationToSMPL(poseParams);
+        float[][] pose = new float[poseParams.Count][];
+
+        for (int i = 0; i < pose.Length; i++)
+        {
+            pose[i] = new float[4];
+            pose[i][0] = poseParams[i].x;
+            pose[i][1] = poseParams[i].y;
+            pose[i][2] = poseParams[i].z;
+            pose[i][3] = poseParams[i].w;
+        }
+
         _modifyBones.updateBoneAngles(pose, trans);
     }
 
@@ -381,10 +394,11 @@ public class SMPLBlendshapes : MonoBehaviour {
         Quaternion[] globalRotations = rotationParameters.ToArray();
 
         // Convert global rotations to local rotations
-        Quaternion[] localRotations = convertLocalRotation(globalRotations);
+        //Quaternion[] localRotations = convertLocalRotation(globalRotations);
 
 		// Reorder
-		Quaternion[] reorderedRotations = ReorderQuaternions(localRotations, JointData.boneIndexNamesGroundTruth, JointData.boneIndexNamesSMPL);
+		//Quaternion[] reorderedRotations = ReorderQuaternions(localRotations, JointData.boneIndexNamesGroundTruth, JointData.boneIndexNamesSMPL);
+		Quaternion[] reorderedRotations = globalRotations;
 
         // 4. convert to SMPL pose parameter format
         float[][] rotationsAsFloats = new float[reorderedRotations.Length][];
@@ -399,46 +413,5 @@ public class SMPLBlendshapes : MonoBehaviour {
         }
 
 		return rotationsAsFloats;
-    }
-
-    // Global Rotation 을 Local Rotation 으로 변환하는 함수
-    private Quaternion[] convertLocalRotation(Quaternion[] globalRotations)
-	{
-        int[] boneParents = new int[] { -1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 11, 14, 15, 16, 17, 11, 19, 20, 21, 22};
-
-        Quaternion[] localRotations = new Quaternion[globalRotations.Length];
-
-        for (int i = 0; i < globalRotations.Length; i++)
-        {
-            int parentIndex = boneParents[i];
-            if (parentIndex == -1)
-                localRotations[i] = globalRotations[i];
-            else
-                localRotations[i] = Quaternion.Inverse(globalRotations[parentIndex]) * globalRotations[i];
-        }
-
-		return localRotations;
-    }
-
-
-    public static Quaternion[] ReorderQuaternions(Quaternion[] originalRotations, string[] srcOrder, string[] destOrder)
-    {
-        Quaternion[] reorderedRotations = new Quaternion[destOrder.Length];
-
-        for (int i = 0; i < destOrder.Length; i++)
-        {
-            int indexInGroundTruth = System.Array.IndexOf(srcOrder, destOrder[i]);
-            if (indexInGroundTruth != -1)
-            {
-                reorderedRotations[i] = originalRotations[indexInGroundTruth];
-            }
-            else
-            {
-                Debug.LogError($"Bone {destOrder[i]} not found in ground truth names.");
-                reorderedRotations[i] = Quaternion.identity; // Default rotation if not found
-            }
-        }
-
-        return reorderedRotations;
     }
 }

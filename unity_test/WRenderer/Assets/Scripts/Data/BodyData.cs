@@ -135,7 +135,7 @@ public class BodyData : MonoBehaviour
         }
 
         // SMPL
-        if (modelType == BodyType.GroundTruth)
+        if (modelType == BodyType.GroundTruth || modelType == BodyType.SMPLify)
         {
             Transform childTransform = smplObject.transform.Find("m_avg");
             SMPLBlendshapes smplBlendshapes = childTransform.GetComponent<SMPLBlendshapes>();
@@ -209,10 +209,61 @@ public class BodyData : MonoBehaviour
 
             jointData.jointList = jointList;
             jointData.shapeList = shapeData.shape_param_frames[i].S;
-            jointData.poseList = ConvertOpenGLToUnity(ConvertToQuaternions(poseData.pose_parameters[i].R));
+
+            List<Quaternion> poseList = ConvertOpenGLToUnity(ConvertToQuaternions(poseData.pose_parameters[i].R));
+            jointData.poseList = ConvertGroundTruthRotationToSMPL(poseList);
 
             jointFrameList.Add(jointData);
         }
+    }
+
+    public List<Quaternion> ConvertGroundTruthRotationToSMPL(List<Quaternion> rotationParameters)
+    {
+        // Convert global rotations to local rotations
+        List<Quaternion> localRotations = ConvertLocalRotation(rotationParameters);
+
+        // Reorder
+        List<Quaternion> reorderedRotations = ReorderQuaternions(localRotations, JointData.boneIndexNamesGroundTruth, JointData.boneIndexNamesSMPL);
+
+        return reorderedRotations;
+    }
+
+    private List<Quaternion> ConvertLocalRotation(List<Quaternion> globalRotations)
+    {
+        int[] boneParents = new int[] { -1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 11, 14, 15, 16, 17, 11, 19, 20, 21, 22 };
+        List<Quaternion> localRotations = new List<Quaternion>(new Quaternion[globalRotations.Count]);
+
+        for (int i = 0; i < globalRotations.Count; i++)
+        {
+            int parentIndex = boneParents[i];
+            if (parentIndex == -1)
+                localRotations[i] = globalRotations[i];
+            else
+                localRotations[i] = Quaternion.Inverse(globalRotations[parentIndex]) * globalRotations[i];
+        }
+
+        return localRotations;
+    }
+
+    private List<Quaternion> ReorderQuaternions(List<Quaternion> originalRotations, string[] srcOrder, string[] destOrder)
+    {
+        List<Quaternion> reorderedRotations = new List<Quaternion>(new Quaternion[destOrder.Length]);
+
+        for (int i = 0; i < destOrder.Length; i++)
+        {
+            int indexInGroundTruth = System.Array.IndexOf(srcOrder, destOrder[i]);
+            if (indexInGroundTruth != -1)
+            {
+                reorderedRotations[i] = originalRotations[indexInGroundTruth];
+            }
+            else
+            {
+                Debug.LogError($"Bone {destOrder[i]} not found in ground truth names.");
+                reorderedRotations[i] = Quaternion.identity; // Default rotation if not found
+            }
+        }
+
+        return reorderedRotations;
     }
 
     // OpenGL coord -> Unity coord: y flip, z flip
@@ -288,6 +339,28 @@ public class BodyData : MonoBehaviour
                 jointList.Add(position);
             }
 
+            // Shape & Pose
+            if (modelType == BodyType.SMPLify)
+            {
+                filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_4_output_smplify.json";
+                dataAsJson = File.ReadAllText(filePath);
+                PoseAndShapeDataSMPLify poseAndShapeData = JsonConvert.DeserializeObject<PoseAndShapeDataSMPLify>(dataAsJson);
+
+                // Converting pose parameters to Quaternion
+                List<Quaternion> poseList = new List<Quaternion>();
+
+                for (int k = 0; k < poseAndShapeData.pose.Count; k += 3)
+                {
+                    Vector3 rodVector = new Vector3(poseAndShapeData.pose[k], poseAndShapeData.pose[k + 1], poseAndShapeData.pose[k + 2]);
+                    Quaternion quaternion = RodriguesToQuaternion(rodVector);
+                    poseList.Add(quaternion);
+                }
+                jointData.poseList = ConvertOpenGLToUnity(poseList);
+
+                // Assigning shape parameters directly
+                jointData.shapeList = poseAndShapeData.betas;
+            }
+
             // Convert
             if (modelType == BodyType.DeepRobot)
                 jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
@@ -295,6 +368,20 @@ public class BodyData : MonoBehaviour
                 jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesSMPL, JointData.boneIndexNamesOpenpose);
 
             jointFrameList.Add(jointData);
+        }
+    }
+
+    private Quaternion RodriguesToQuaternion(Vector3 rodVector)
+    {
+        float theta = rodVector.magnitude;
+        if (theta < 1e-6)
+        {
+            return Quaternion.identity;
+        }
+        else
+        {
+            Vector3 axis = rodVector.normalized;
+            return Quaternion.AngleAxis(theta * Mathf.Rad2Deg, axis);
         }
     }
 
