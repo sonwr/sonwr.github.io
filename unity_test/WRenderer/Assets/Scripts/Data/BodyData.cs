@@ -5,21 +5,51 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.UIElements;
 
+public enum BodyType
+{
+    None = 0,
+    DeepRobot = 1,
+    SMPLify = 2,
+    GroundTruth = 3,
+}
+
 public class BodyData : MonoBehaviour
 {
-	private string modelName;
+    private BodyType modelType = BodyType.None;
+    private Color color = Color.white;
+
+    private static string[] modelNames = new string[] { "DeepRobot", "SMPLify", "GroundTruth" };
 
     private List<JointData> jointFrameList;
 
     private List<GameObject> jointGameObjects;
     private List<GameObject> boneGameObjects;
 
-    public BodyData(string modelName)
+    public BodyData(BodyType modelType)
 	{
-        this.modelName = modelName;
+        this.modelType = modelType;
+
+        if (modelType == BodyType.DeepRobot)
+            color = Color.blue;
+        if (modelType == BodyType.SMPLify)
+            color = Color.red;
+        if (modelType == BodyType.GroundTruth)
+            color = Color.yellow;
     }
 
-    public void Init(GameObject jointPrefab, GameObject bonePrefab, GameObject parentGameObject, Color color)
+    public string GetModelName()
+    {
+        if (modelType == BodyType.DeepRobot)
+            return modelNames[0];
+        if (modelType == BodyType.SMPLify)
+            return modelNames[1];
+        if (modelType == BodyType.GroundTruth)
+            return modelNames[2];
+
+        return null;
+    }
+
+    public void Init(GameObject jointPrefab, GameObject bonePrefab, GameObject parentGameObject)
     {
         jointGameObjects = new List<GameObject>();
         boneGameObjects = new List<GameObject>();
@@ -61,6 +91,7 @@ public class BodyData : MonoBehaviour
                 jointGameObjects[i].SetActive(true);
         }
 
+        
         // Bone
         for (int i = 0; i < jointData.jointList.Count; i++)
         {
@@ -70,7 +101,7 @@ public class BodyData : MonoBehaviour
             GameObject childJoint = jointGameObjects[i];
             GameObject parentJoint = FindActiveParent(i);
 
-            if (childJoint.activeSelf == false || parentJoint == null)
+            if (childJoint.activeSelf == false || parentJoint.activeSelf == false || parentJoint == null)
                 continue;
 
             Vector3 direction = childJoint.transform.position - parentJoint.transform.position;
@@ -97,41 +128,13 @@ public class BodyData : MonoBehaviour
             return FindActiveParent(parentIndex);
     }
 
-    public void LoadFileSMPLify(int frameStartIndex, int frameLastIndex)
+    public void LoadFile(int frameStartIndex, int frameLastIndex)
     {
-        jointFrameList = new List<JointData>();
-
-        for (int i = frameStartIndex; i < frameLastIndex; i++)
-        {
-            JointData jointData = new JointData(i);
-
-            // Read and process the JSON file
-            string filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_3_joint_3d_smplify4.json";
-            string dataAsJson = File.ReadAllText(filePath);
-            var joints = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
-
-            // Instantiate joints and store them in the list
-            List<Vector3> jointList = new List<Vector3>();
-            for (int j = 0; j < joints.Length; j++)
-            {
-                float scale = 1.0f;
-
-                float x = joints[j][0] * scale;
-                float y = joints[j][1] * scale;
-                float z = joints[j][2] * scale;
-
-                Vector3 position = new Vector3(x, y, z);
-                jointList.Add(position);
-            }
-
-            // Convert 
-            jointData.jointList = ConvertJointDataOrder(jointList);
-
-            jointFrameList.Add(jointData);
-        }
+        if (modelType == BodyType.DeepRobot || modelType == BodyType.SMPLify)
+            LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
     }
 
-    public void LoadFileDeepRobot(int frameStartIndex, int frameLastIndex)
+    public void LoadFileDeepRobotOrSMPLify(int frameStartIndex, int frameLastIndex)
     {
         jointFrameList = new List<JointData>();
 
@@ -140,16 +143,28 @@ public class BodyData : MonoBehaviour
             JointData jointData = new JointData(i);
 
             // Read and process the JSON file
-            string filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_3_joint_3d.json";
+            string filePath = null;
+
+            if (modelType == BodyType.DeepRobot)
+                filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_3_joint_3d.json";
+            else if (modelType == BodyType.SMPLify)
+                filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_3_joint_3d_smplify4.json";
+
+            if (filePath == null)
+                continue;
+
             string dataAsJson = File.ReadAllText(filePath);
             var joints = JsonConvert.DeserializeObject<float[][]>(dataAsJson);
+
+            // Scale
+            float scale = 1.0f;
+            if (modelType == BodyType.DeepRobot)
+                scale = 0.01f;
 
             // Instantiate joints and store them in the list
             List<Vector3> jointList = new List<Vector3>();
             for (int j = 0; j < joints.Length; j++)
             {
-                float scale = 0.01f;
-
                 float x = joints[j][0] * scale;
                 float y = joints[j][1] * scale;
                 float z = joints[j][2] * scale;
@@ -158,8 +173,11 @@ public class BodyData : MonoBehaviour
                 jointList.Add(position);
             }
 
-            // Convert 
-            jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
+            // Convert
+            if (modelType == BodyType.DeepRobot)
+                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
+            else if (modelType == BodyType.SMPLify)
+                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesSMPL, JointData.boneIndexNamesOpenpose);
 
             jointFrameList.Add(jointData);
         }

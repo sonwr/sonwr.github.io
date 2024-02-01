@@ -20,6 +20,12 @@ public class JointData
     // 2. SMPL = SMPL
 
     public static string[] boneIndexNamesSMPL = new string[] {
+        "Pelvis", "L_Hip", "R_Hip", "SpineL", "L_Knee", "R_Knee", "SpineM",
+        "L_Ankle", "R_Ankle", "SpineH", "L_Foot", "R_Foot", "Neck",
+        "L_Collar", "R_Collar", "Head", "L_Shoulder", "R_Shoulder",
+        "L_Elbow", "R_Elbow", "L_Wrist", "R_Wrist", "L_Hand", "R_Hand" };
+
+    public static string[] boneIndexNamesGroundTruth = new string[] {
         "Pelvis", "L_Hip", "L_Knee", "L_Ankle", "L_Foot", "R_Hip", "R_Knee",
         "R_Ankle", "R_Foot", "SpineL", "SpineM", "SpineH", "Neck", "Head",
         "L_Collar", "L_Shoulder", "L_Elbow", "L_Wrist", "L_Hand", "R_Collar",

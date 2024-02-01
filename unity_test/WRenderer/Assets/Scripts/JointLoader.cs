@@ -18,8 +18,7 @@ public class JointLoader : MonoBehaviour
     // Body Model
     private List<BodyData> modelList;
 
-    private string[] modelNames = new string[] { "DeepRobot", "SMPLify", "GroundTruth" };
-    private Color[] modelColors = new Color[] { Color.blue, Color.red, Color.yellow };
+    private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.SMPLify, BodyType.GroundTruth };
 
     // Start is called before the first frame update
     void Start()
@@ -44,23 +43,20 @@ public class JointLoader : MonoBehaviour
     {
         modelList = new List<BodyData>();
 
-        for (int i = 0; i < modelNames.Length; i++)
+        for (int i = 0; i < bodyModels.Length; i++)
         {
-            string modelname = modelNames[i];
-            Color modelColor = modelColors[i];
+            BodyType bodyType = bodyModels[i];
 
-            // Create Body GameObject
-            GameObject emptyChildGameObject = new GameObject(modelname);
+            BodyData bodyData = new BodyData(bodyType);
+
+            GameObject emptyChildGameObject = new GameObject(bodyData.GetModelName());
             emptyChildGameObject.transform.SetParent(this.transform, false);
 
-            // Init Body Model
-            BodyData bodyData = new BodyData(modelname);
-            bodyData.Init(jointPrefab, bonePrefab, emptyChildGameObject, modelColor);
+            bodyData.Init(jointPrefab, bonePrefab, emptyChildGameObject);
             modelList.Add(bodyData);
 
-            // DeepRobot
-            if (i == 0)
-                bodyData.LoadFileDeepRobot(frameStartIndex, frameLastIndex);
+            // Load File
+            bodyData.LoadFile(frameStartIndex, frameLastIndex);
         }
     }
 }

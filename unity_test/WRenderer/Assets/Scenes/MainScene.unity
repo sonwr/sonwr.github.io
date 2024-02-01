@@ -188,7 +188,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &73852108
 Transform:
   m_ObjectHideFlags: 0
@@ -2062,6 +2062,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jointPrefab: {fileID: 4196250119612486365, guid: d4a1ba8fd328941d4a54301829d3c39e, type: 3}
   bonePrefab: {fileID: 4775857794237226603, guid: f2b112d42a9074f9a873418a4bf7e045, type: 3}
+  frameIndex: 2100
+  frameStartIndex: 2100
+  frameLastIndex: 2350
 --- !u!1 &1625355339
 GameObject:
   m_ObjectHideFlags: 0
@@ -2206,7 +2209,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1786288507
 Transform:
   m_ObjectHideFlags: 0
