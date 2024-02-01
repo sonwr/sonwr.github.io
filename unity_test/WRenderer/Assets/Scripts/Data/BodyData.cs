@@ -132,16 +132,51 @@ public class BodyData : MonoBehaviour
 
     public void LoadFile(int frameStartIndex, int frameLastIndex)
     {
+        jointFrameList = new List<JointData>();
+
         if (modelType == BodyType.DeepRobot || modelType == BodyType.SMPLify)
             LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
 
-        // TODO: Ground Truth
+        if (modelType == BodyType.GroundTruth)
+            LoadFileGroundTruth(frameStartIndex, frameLastIndex);
+    }
+
+    private void LoadFileGroundTruth(int frameStartIndex, int frameLastIndex)
+    {
+        string filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_Joints_World3D_opose25_smooth.json";
+        string jsonData = File.ReadAllText(filePath);
+        JointDataGroundTruth jointDataGroundTruth = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
+
+        for(int i=0; i< jointDataGroundTruth.Set.Count; i++)
+        {
+            JointDataFrame jointDataFrame = jointDataGroundTruth.Set[i];
+            int frameIndex = jointDataFrame.F;
+
+            if (frameIndex < frameStartIndex || frameIndex >= frameLastIndex)
+                continue;
+
+            JointData jointData = new JointData(frameIndex);
+
+            float scale = 0.01f;
+
+            List<Vector3> jointList = new List<Vector3>();
+            for (int j = 0; j < jointDataFrame.J.Length; j++)
+            {
+                float x = jointDataFrame.J[j][0] * scale;
+                float y = jointDataFrame.J[j][1] * scale;
+                float z = jointDataFrame.J[j][2] * scale;
+
+                Vector3 position = new Vector3(x, y, z);
+                jointList.Add(position);
+            }
+
+            jointData.jointList = jointList;
+            jointFrameList.Add(jointData);
+        }
     }
 
     private void LoadFileDeepRobotOrSMPLify(int frameStartIndex, int frameLastIndex)
     {
-        jointFrameList = new List<JointData>();
-
         for (int i = frameStartIndex; i < frameLastIndex; i++)
         {
             JointData jointData = new JointData(i);
