@@ -9,6 +9,7 @@ public class JointLoader : MonoBehaviour
     // Prefab
     public GameObject jointPrefab;  // Prefab for the sphere to represent joints
     public GameObject bonePrefab;   // Prefab for the cylinder to represent bones
+    public GameObject smplPrefab;
 
     // Parameter
     public int frameIndex = 2100;//1800;
@@ -45,20 +46,28 @@ public class JointLoader : MonoBehaviour
 
         for (int i = 0; i < bodyModels.Length; i++)
         {
-            GameObject emptyChildGameObject = new GameObject();
-            emptyChildGameObject.transform.SetParent(this.transform, false);
+            GameObject jointBodyGameObject = new GameObject();
+            jointBodyGameObject.transform.SetParent(this.transform, false);
 
+            // Joint Body
             BodyType bodyType = bodyModels[i];
             BodyData bodyData = new BodyData(bodyType);
-            bodyData.Init(jointPrefab, bonePrefab, emptyChildGameObject);
+            bodyData.Init(jointPrefab, bonePrefab, jointBodyGameObject);
             bodyData.LoadFile(frameStartIndex, frameLastIndex);
 
-            emptyChildGameObject.name = bodyData.GetModelName();
+            // SMPL Body
+            GameObject smplBodyGameObject = new GameObject();
+            smplBodyGameObject.transform.SetParent(this.transform, false);
+            bodyData.InitSMPL(smplPrefab, smplBodyGameObject);
+
+            jointBodyGameObject.name = bodyData.GetModelName();
+            smplBodyGameObject.name = bodyData.GetModelName() + "_SMPL";
+
             modelList.Add(bodyData);
         }
 
 
-        // Align
+        // Align (SMPLify <-> DeepRobot)
         float alignScale = 1.0f;
         Vector3 alignTransform = new Vector3();
 

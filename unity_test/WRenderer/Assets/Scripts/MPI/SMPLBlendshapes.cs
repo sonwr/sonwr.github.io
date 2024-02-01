@@ -339,7 +339,24 @@ public class SMPLBlendshapes : MonoBehaviour {
 		calculateJoints();
 	}
 
-	public void setShapeParms(List<float> shapeParams, List<List<float>> poseParams)
+
+    public void setShapeAndPoseParameters(List<float> shapeParams, List<Quaternion> poseParams)
+    {
+        for (int i = 0; i < shapeParams.Count; i++)
+            _shapeParms[i] = shapeParams[i] / 100.0f;// + Random.Range(0, 1);
+
+        // 2. Set shape parameters (betas) of avg mesh in FBX model 
+        // 	  to shape-parameters (betas) from user's JSON file
+        setShapeBlendValues();
+
+        // Update Pose Rotation
+        float[] trans = new float[3] { 0.0f, 0.0f, 0.0f };
+        float[][] pose = convertGroundTruthRotationToSMPL(poseParams);
+        _modifyBones.updateBoneAngles(pose, trans);
+    }
+
+
+    public void setShapeParms(List<float> shapeParams, List<List<float>> poseParams)
     {
 		for (int i = 0; i < shapeParams.Count; i++)
 			_shapeParms[i] = shapeParams[i] / 100.0f;// + Random.Range(0, 1);
@@ -352,54 +369,24 @@ public class SMPLBlendshapes : MonoBehaviour {
         //calculateJoints();
 
         // TODO: Update Pose Rotation
-        float[] trans = new float[3] { 0.0f, 1.0f, 0.0f };
-        float[][] pose = convertGroundTruthRotationToSMPL(poseParams);
-        _modifyBones.updateBoneAngles(pose, trans);
+        //float[] trans = new float[3] { 0.0f, 1.0f, 0.0f };
+        //float[][] pose = convertGroundTruthRotationToSMPL(poseParams);
+        //_modifyBones.updateBoneAngles(pose, trans);
     }
 
 	// Ground Truth 결과 (Rotation Parameter)를 SMPL의 Pose Parameter 형태로 변환하는 함수
-    private float[][] convertGroundTruthRotationToSMPL(List<List<float>> rotationParameters)
-	{
-		// 1. convert Ground Truth data to Global Rotation Array
-        Quaternion[] globalRotations = new Quaternion[rotationParameters.Count];
+    private float[][] convertGroundTruthRotationToSMPL(List<Quaternion> rotationParameters)
+    {
+        // Since the input is already in Quaternion format, we skip the conversion from List<float>
+        Quaternion[] globalRotations = rotationParameters.ToArray();
 
-        for (int i = 0; i < rotationParameters.Count; i++)
-        {
-            globalRotations[i] = CreateQuaternionFromList(rotationParameters[i]);
-        }
-
-		// 2. Local Rotation
+        // Convert global rotations to local rotations
         Quaternion[] localRotations = convertLocalRotation(globalRotations);
 
+		// Reorder
+		Quaternion[] reorderedRotations = ReorderQuaternions(localRotations, JointData.boneIndexNamesGroundTruth, JointData.boneIndexNamesSMPL);
 
-		// 3. Reorder (Ground Truth order -> SMPL order)
-        string[] boneNames = new string[] {
-			"Pelvis", "L_Hip", "L_Knee", "L_Ankle", "L_Foot", "R_Hip", "R_Knee",
-			"R_Ankle", "R_Foot", "SpineL", "SpineM", "SpineH", "Neck", "Head",
-			"L_Collar", "L_Shoulder", "L_Elbow", "L_Wrist", "L_Hand", "R_Collar",
-			"R_Shoulder", "R_Elbow", "R_Wrist", "R_Hand"
-		};
-
-		Dictionary<string, int> boneNameToJointIndexSMPL = new Dictionary<string, int>
-		{
-			{"Pelvis", 0}, {"L_Hip", 1}, {"R_Hip", 2}, {"Spine1", 3}, {"L_Knee", 4},
-			{"R_Knee", 5}, {"Spine2", 6}, {"L_Ankle", 7}, {"R_Ankle", 8}, {"Spine3", 9},
-			{"L_Foot", 10}, {"R_Foot", 11}, {"Neck", 12}, {"L_Collar", 13},
-			{"R_Collar", 14}, {"Head", 15}, {"L_Shoulder", 16}, {"R_Shoulder", 17},
-			{"L_Elbow", 18}, {"R_Elbow", 19}, {"L_Wrist", 20}, {"R_Wrist", 21},
-			{"L_Hand", 22}, {"R_Hand", 23}
-		};
-
-        Quaternion[] reorderedRotations = new Quaternion[boneNames.Length];
-        for (int i = 0; i < boneNames.Length; i++)
-        {
-            if (boneNameToJointIndexSMPL.TryGetValue(boneNames[i], out int newIndex))
-            {
-                reorderedRotations[newIndex] = localRotations[i];
-            }
-        }
-
-		// 4. convert to SMPL pose parameter format
+        // 4. convert to SMPL pose parameter format
         float[][] rotationsAsFloats = new float[reorderedRotations.Length][];
 
         for (int i = 0; i < reorderedRotations.Length; i++)
@@ -433,8 +420,25 @@ public class SMPLBlendshapes : MonoBehaviour {
 		return localRotations;
     }
 
-    private Quaternion CreateQuaternionFromList(List<float> rotationList)
+
+    public static Quaternion[] ReorderQuaternions(Quaternion[] originalRotations, string[] srcOrder, string[] destOrder)
     {
-        return new Quaternion(rotationList[0], -rotationList[1], -rotationList[2], rotationList[3]);
+        Quaternion[] reorderedRotations = new Quaternion[destOrder.Length];
+
+        for (int i = 0; i < destOrder.Length; i++)
+        {
+            int indexInGroundTruth = System.Array.IndexOf(srcOrder, destOrder[i]);
+            if (indexInGroundTruth != -1)
+            {
+                reorderedRotations[i] = originalRotations[indexInGroundTruth];
+            }
+            else
+            {
+                Debug.LogError($"Bone {destOrder[i]} not found in ground truth names.");
+                reorderedRotations[i] = Quaternion.identity; // Default rotation if not found
+            }
+        }
+
+        return reorderedRotations;
     }
 }

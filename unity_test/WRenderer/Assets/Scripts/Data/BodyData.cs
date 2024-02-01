@@ -22,8 +22,10 @@ public class BodyData : MonoBehaviour
 
     private List<JointData> jointFrameList;
 
+    // Game Object
     private List<GameObject> jointGameObjects;
     private List<GameObject> boneGameObjects;
+    private GameObject smplObject;
 
     private float alignScale = 1.0f;
     private Vector3 alignDisplacement = new Vector3();
@@ -74,6 +76,22 @@ public class BodyData : MonoBehaviour
         }
     }
 
+    public void InitSMPL(GameObject smplPrefab, GameObject parentGameObject)
+    {
+        Vector3 position = new Vector3(0, 0, 0);
+        if (modelType == BodyType.DeepRobot)
+            position = new Vector3(0.0f, 0, 0);
+        else if (modelType == BodyType.SMPLify)
+            position = new Vector3(-1.0f, 0, 0);
+        else if (modelType == BodyType.GroundTruth)
+            position = new Vector3(1.0f, 0, 0);
+
+        smplObject = Instantiate(smplPrefab, position, Quaternion.identity);
+        Transform childTransform = smplObject.transform.Find("m_avg");
+        childTransform.GetComponent<Renderer>().material.color = color;
+        parentGameObject.transform.SetParent(parentGameObject.transform);
+    }
+
     public void Render(int frameIndex, int frameStartIndex, int frameLastIndex)
     {
         int idx = frameIndex - frameStartIndex;
@@ -115,6 +133,14 @@ public class BodyData : MonoBehaviour
             boneGameObjects[i].transform.localScale = new Vector3(0.05f, distance * 0.5f, 0.05f);
             boneGameObjects[i].SetActive(true);
         }
+
+        // SMPL
+        if (modelType == BodyType.GroundTruth)
+        {
+            Transform childTransform = smplObject.transform.Find("m_avg");
+            SMPLBlendshapes smplBlendshapes = childTransform.GetComponent<SMPLBlendshapes>();
+            smplBlendshapes.setShapeAndPoseParameters(jointData.shapeList, jointData.poseList);
+        }
     }
 
     // 활성 상태인 부모 GameObject를 재귀적으로 찾는 함수
@@ -143,11 +169,22 @@ public class BodyData : MonoBehaviour
 
     private void LoadFileGroundTruth(int frameStartIndex, int frameLastIndex)
     {
+        // Joint
         string filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_Joints_World3D_opose25_smooth.json";
         string jsonData = File.ReadAllText(filePath);
         JointDataGroundTruth jointDataGroundTruth = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
 
-        for(int i=0; i< jointDataGroundTruth.Set.Count; i++)
+        // Shape
+        filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Shape.json";
+        jsonData = File.ReadAllText(filePath);
+        ShapeDataGroundTruth shapeData = JsonConvert.DeserializeObject<ShapeDataGroundTruth>(jsonData);
+
+        // Pose
+        filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Pose.json";
+        jsonData = File.ReadAllText(filePath);
+        PoseDataGroundTruth poseData = JsonConvert.DeserializeObject<PoseDataGroundTruth>(jsonData);
+
+        for (int i=0; i< jointDataGroundTruth.Set.Count; i++)
         {
             JointDataFrame jointDataFrame = jointDataGroundTruth.Set[i];
             int frameIndex = jointDataFrame.F;
@@ -171,8 +208,47 @@ public class BodyData : MonoBehaviour
             }
 
             jointData.jointList = jointList;
+            jointData.shapeList = shapeData.shape_param_frames[i].S;
+            jointData.poseList = ConvertOpenGLToUnity(ConvertToQuaternions(poseData.pose_parameters[i].R));
+
             jointFrameList.Add(jointData);
         }
+    }
+
+    // OpenGL coord -> Unity coord: y flip, z flip
+    public static List<Quaternion> ConvertOpenGLToUnity(List<Quaternion> quaternions)
+    {
+        List<Quaternion> convertedQuaternions = new List<Quaternion>();
+
+        foreach (Quaternion quaternion in quaternions)
+        {
+            // OpenGL에서 Unity로 변환하기 위해 y와 z의 부호를 변경합니다.
+            Quaternion convertedQuaternion = new Quaternion(quaternion.x, -quaternion.y, -quaternion.z, quaternion.w);
+            convertedQuaternions.Add(convertedQuaternion);
+        }
+
+        return convertedQuaternions;
+    }
+
+    public static List<Quaternion> ConvertToQuaternions(List<List<float>> floatLists)
+    {
+        List<Quaternion> quaternions = new List<Quaternion>();
+
+        foreach (List<float> floatList in floatLists)
+        {
+            // 정상적인 Quaternion 데이터를 가지고 있는지 확인합니다.
+            if (floatList.Count == 4)
+            {
+                Quaternion quaternion = new Quaternion(floatList[0], floatList[1], floatList[2], floatList[3]);
+                quaternions.Add(quaternion);
+            }
+            else
+            {
+                Debug.LogError("List<float> does not contain exactly 4 elements.");
+            }
+        }
+
+        return quaternions;
     }
 
     private void LoadFileDeepRobotOrSMPLify(int frameStartIndex, int frameLastIndex)
