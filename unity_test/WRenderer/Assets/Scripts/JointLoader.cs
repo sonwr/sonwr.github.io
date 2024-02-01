@@ -21,6 +21,10 @@ public class JointLoader : MonoBehaviour
 
     private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.SMPLify, BodyType.GroundTruth };
 
+    // Frame
+    private float nextActionTime = 0f;
+    private float period = 1f / 30f; // 30 FPS에 해당하는 시간 간격
+
     // Start is called before the first frame update
     void Start()
     {
@@ -32,12 +36,17 @@ public class JointLoader : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        for (int i = 0; i < modelList.Count; i++)
-            modelList[i].Render(frameIndex, frameStartIndex, frameLastIndex);
+        if (Time.time >= nextActionTime)
+        {
+            nextActionTime += period;
 
-        frameIndex++;
-        if (frameIndex > frameLastIndex)
-            frameIndex = frameStartIndex;
+            for (int i = 0; i < modelList.Count; i++)
+                modelList[i].Render(frameIndex, frameStartIndex, frameLastIndex);
+
+            frameIndex++;
+            if (frameIndex > frameLastIndex)
+                frameIndex = frameStartIndex;
+        }
     }
 
     void InitModelList()
@@ -66,7 +75,6 @@ public class JointLoader : MonoBehaviour
             modelList.Add(bodyData);
         }
 
-
         // Align (SMPLify <-> DeepRobot)
         float alignScale = 1.0f;
         Vector3 alignTransform = new Vector3();
@@ -74,5 +82,9 @@ public class JointLoader : MonoBehaviour
         (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[1]);
         modelList[1].SetScaleAndDisplacement(alignScale, alignTransform);
 
+
+        // Align (SMPLify <-> Ground Truth)
+        (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[2]);
+        modelList[2].SetScaleAndDisplacement(alignScale, alignTransform);
     }
 }

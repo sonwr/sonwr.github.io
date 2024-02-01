@@ -48,7 +48,7 @@ public class JointData
 
     public static int jointCount = 25;
     public static int poseCount = 24;
-    public static int shapeCount = 24;
+    public static int shapeCount = 10;
 
     public int frameIndex = 0;
 

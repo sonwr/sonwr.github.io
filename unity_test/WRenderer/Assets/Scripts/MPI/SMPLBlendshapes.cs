@@ -353,7 +353,7 @@ public class SMPLBlendshapes : MonoBehaviour {
         setShapeBlendValues();
 
         // Update Pose Rotation
-        float[] trans = new float[3] { 0.0f, 0.0f, 0.0f };
+        float[] trans = new float[3] { 0.0f, 0.0f, 0.0f };	// pelvis position
         float[][] pose = new float[poseParams.Count][];
 
         for (int i = 0; i < pose.Length; i++)

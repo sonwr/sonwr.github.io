@@ -59,6 +59,17 @@ public class BodyData : MonoBehaviour
         jointGameObjects = new List<GameObject>();
         boneGameObjects = new List<GameObject>();
 
+        // Init rotation
+        Quaternion rotation = Quaternion.identity;
+        if (modelType == BodyType.DeepRobot)
+            rotation = Quaternion.Euler(0, 0, 180);
+        else if (modelType == BodyType.SMPLify)
+            rotation = Quaternion.Euler(0, 0, 180);
+        else if (modelType == BodyType.GroundTruth)
+            rotation = Quaternion.identity;
+
+        parentGameObject.transform.rotation = rotation;
+
         // Instantiate joints and store them in the list
         for (int i = 0; i < JointData.jointCount; i++)
         {
@@ -78,18 +89,30 @@ public class BodyData : MonoBehaviour
 
     public void InitSMPL(GameObject smplPrefab, GameObject parentGameObject)
     {
+        // Init position
         Vector3 position = new Vector3(0, 0, 0);
+        /*
         if (modelType == BodyType.DeepRobot)
             position = new Vector3(0.0f, 0, 0);
         else if (modelType == BodyType.SMPLify)
             position = new Vector3(-1.0f, 0, 0);
         else if (modelType == BodyType.GroundTruth)
             position = new Vector3(1.0f, 0, 0);
+        */
 
-        smplObject = Instantiate(smplPrefab, position, Quaternion.identity);
+        // Init rotation
+        Quaternion rotation = Quaternion.identity;
+        if (modelType == BodyType.DeepRobot)
+            rotation = Quaternion.Euler(0, 180, 0);
+        else if (modelType == BodyType.SMPLify)
+            rotation = Quaternion.Euler(0, 0, 180);
+        else if (modelType == BodyType.GroundTruth)
+            rotation = Quaternion.identity;
+
+        smplObject = Instantiate(smplPrefab, position, rotation);
         Transform childTransform = smplObject.transform.Find("m_avg");
         childTransform.GetComponent<Renderer>().material.color = color;
-        parentGameObject.transform.SetParent(parentGameObject.transform);
+        smplObject.transform.SetParent(parentGameObject.transform);
     }
 
     public void Render(int frameIndex, int frameStartIndex, int frameLastIndex)
@@ -135,12 +158,11 @@ public class BodyData : MonoBehaviour
         }
 
         // SMPL
-        if (modelType == BodyType.GroundTruth || modelType == BodyType.SMPLify)
-        {
-            Transform childTransform = smplObject.transform.Find("m_avg");
-            SMPLBlendshapes smplBlendshapes = childTransform.GetComponent<SMPLBlendshapes>();
+        Transform childTransform = smplObject.transform.Find("m_avg");
+        SMPLBlendshapes smplBlendshapes = childTransform.GetComponent<SMPLBlendshapes>();
+
+        if (jointData.shapeList.Count == JointData.shapeCount && jointData.poseList.Count == JointData.poseCount)
             smplBlendshapes.setShapeAndPoseParameters(jointData.shapeList, jointData.poseList);
-        }
     }
 
     // 활성 상태인 부모 GameObject를 재귀적으로 찾는 함수
@@ -339,8 +361,29 @@ public class BodyData : MonoBehaviour
                 jointList.Add(position);
             }
 
+            // Convert
+            if (modelType == BodyType.DeepRobot)
+                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
+            else if (modelType == BodyType.SMPLify)
+                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesSMPL, JointData.boneIndexNamesOpenpose);
+
+
             // Shape & Pose
-            if (modelType == BodyType.SMPLify)
+            if (modelType == BodyType.DeepRobot)
+            {
+                // Shape
+                jointData.shapeList = new List<float>();
+                for (int j = 0; j < JointData.shapeCount; j++)
+                    jointData.shapeList.Add(0.0f);
+
+                // Pose
+                jointData.poseList = new List<Quaternion>();
+                for (int j = 0; j < JointData.poseCount; j++)
+                    jointData.poseList.Add(new Quaternion());
+
+                GenerateDeepRobotPoseData(jointData.poseList, jointData.jointList);
+            }
+            else if (modelType == BodyType.SMPLify)
             {
                 filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_4_output_smplify.json";
                 dataAsJson = File.ReadAllText(filePath);
@@ -361,14 +404,49 @@ public class BodyData : MonoBehaviour
                 jointData.shapeList = poseAndShapeData.betas;
             }
 
-            // Convert
-            if (modelType == BodyType.DeepRobot)
-                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
-            else if (modelType == BodyType.SMPLify)
-                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesSMPL, JointData.boneIndexNamesOpenpose);
-
             jointFrameList.Add(jointData);
         }
+    }
+
+    private void GenerateDeepRobotPoseData(List<Quaternion> poseList, List<Vector3> jointList)
+    {
+        if (poseList == null || poseList.Count < JointData.poseCount)
+            return;
+
+        //poseList[0] = Quaternion.Euler(0, 180, 0);
+
+        // Left Shoulder
+        poseList[17] = CalcJointRotation(jointList[1], jointList[5], jointList[6]);
+        // Left Elbow
+        poseList[19] = CalcJointRotation(jointList[5], jointList[6], jointList[7]);
+
+        // Right Shoulder
+        poseList[16] = CalcJointRotation(jointList[1], jointList[2], jointList[3]);
+        // Right Elbow
+        poseList[18] = CalcJointRotation(jointList[2], jointList[3], jointList[4]);
+
+        // TODO: 좌우 다리가 반대로 나옴
+
+        // Left Hip
+        poseList[1] = CalcJointRotation(jointList[1], jointList[12], jointList[13]);
+        // Left Knee
+        poseList[4] = CalcJointRotation(jointList[12], jointList[13], jointList[14]);
+
+        // Right Hip
+        poseList[2] = CalcJointRotation(jointList[1], jointList[9], jointList[10]);
+        // Right Knee
+        poseList[5] = CalcJointRotation(jointList[9], jointList[10], jointList[11]);
+    }
+
+    private Quaternion CalcJointRotation(Vector3 joint1, Vector3 joint2, Vector3 joint3)
+    {
+        Vector3 vector1 = new Vector3(joint2.x, joint2.y, joint2.z) -
+                          new Vector3(joint1.x, joint1.y, joint1.z);
+
+        Vector3 vector2 = new Vector3(joint3.x, joint3.y, joint3.z) -
+                          new Vector3(joint2.x, joint2.y, joint2.z);
+
+        return Quaternion.FromToRotation(vector1, vector2);
     }
 
     private Quaternion RodriguesToQuaternion(Vector3 rodVector)
