@@ -68,10 +68,8 @@ public class BodyData : MonoBehaviour
                 continue;
 
             GameObject childJoint = jointGameObjects[i];
-            // 기존 부모 대신 재귀적으로 활성 상태인 부모를 찾습니다.
             GameObject parentJoint = FindActiveParent(i);
 
-            // 활성 상태인 부모를 찾지 못한 경우, 이번 반복을 건너뜁니다.
             if (childJoint.activeSelf == false || parentJoint == null)
                 continue;
 
@@ -90,19 +88,13 @@ public class BodyData : MonoBehaviour
     GameObject FindActiveParent(int currentIndex)
     {
         if (currentIndex < 0)
-        {
             return null;
-        }
 
         int parentIndex = JointData.jointParentIndexOpenpose[currentIndex];
         if (jointGameObjects[parentIndex].activeSelf)
-        {
             return jointGameObjects[parentIndex];
-        }
         else
-        {
             return FindActiveParent(parentIndex);
-        }
     }
 
     public void LoadFileDeepRobot(int frameStartIndex, int frameLastIndex)
