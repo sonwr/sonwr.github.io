@@ -45,18 +45,25 @@ public class JointLoader : MonoBehaviour
 
         for (int i = 0; i < bodyModels.Length; i++)
         {
-            BodyType bodyType = bodyModels[i];
-
-            BodyData bodyData = new BodyData(bodyType);
-
-            GameObject emptyChildGameObject = new GameObject(bodyData.GetModelName());
+            GameObject emptyChildGameObject = new GameObject();
             emptyChildGameObject.transform.SetParent(this.transform, false);
 
+            BodyType bodyType = bodyModels[i];
+            BodyData bodyData = new BodyData(bodyType);
             bodyData.Init(jointPrefab, bonePrefab, emptyChildGameObject);
-            modelList.Add(bodyData);
-
-            // Load File
             bodyData.LoadFile(frameStartIndex, frameLastIndex);
+
+            emptyChildGameObject.name = bodyData.GetModelName();
+            modelList.Add(bodyData);
         }
+
+
+        // Align
+        float alignScale = 1.0f;
+        Vector3 alignTransform = new Vector3();
+
+        (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[1]);
+        modelList[1].SetScaleAndDisplacement(alignScale, alignTransform);
+
     }
 }

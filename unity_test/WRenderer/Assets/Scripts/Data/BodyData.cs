@@ -25,6 +25,9 @@ public class BodyData : MonoBehaviour
     private List<GameObject> jointGameObjects;
     private List<GameObject> boneGameObjects;
 
+    private float alignScale = 1.0f;
+    private Vector3 alignDisplacement = new Vector3();
+
     public BodyData(BodyType modelType)
 	{
         this.modelType = modelType;
@@ -82,15 +85,14 @@ public class BodyData : MonoBehaviour
 
         for(int i=0; i<jointData.jointList.Count; i++)
         {
-            Vector3 joint = jointData.jointList[i];
+            Vector3 joint = (jointData.jointList[i] * alignScale) + alignDisplacement;
             jointGameObjects[i].transform.localPosition = joint;
 
-            if (joint == Vector3.zero)
+            if (jointData.jointList[i] == Vector3.zero)
                 jointGameObjects[i].SetActive(false);
             else
                 jointGameObjects[i].SetActive(true);
         }
-
         
         // Bone
         for (int i = 0; i < jointData.jointList.Count; i++)
@@ -116,7 +118,7 @@ public class BodyData : MonoBehaviour
     }
 
     // 활성 상태인 부모 GameObject를 재귀적으로 찾는 함수
-    GameObject FindActiveParent(int currentIndex)
+    private GameObject FindActiveParent(int currentIndex)
     {
         if (currentIndex < 0)
             return null;
@@ -132,9 +134,11 @@ public class BodyData : MonoBehaviour
     {
         if (modelType == BodyType.DeepRobot || modelType == BodyType.SMPLify)
             LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
+
+        // TODO: Ground Truth
     }
 
-    public void LoadFileDeepRobotOrSMPLify(int frameStartIndex, int frameLastIndex)
+    private void LoadFileDeepRobotOrSMPLify(int frameStartIndex, int frameLastIndex)
     {
         jointFrameList = new List<JointData>();
 
@@ -183,7 +187,6 @@ public class BodyData : MonoBehaviour
         }
     }
 
-
     private List<Vector3> ConvertJointDataOrder(List<Vector3> jointData, string[] srcOrder, string[] destOrder)
     {
         List<Vector3> reorderJointData = new List<Vector3>(new Vector3[destOrder.Length]);
@@ -202,6 +205,35 @@ public class BodyData : MonoBehaviour
         }
 
         return reorderJointData;
+    }
+
+    public void SetScaleAndDisplacement(float scale, Vector3 displacement)
+    {
+        alignScale = scale;
+        alignDisplacement = displacement;
+    }
+
+    // src body를 target body에 맞추기 위한 scale과 displacement(tranform) 값 구하기
+    public static (float, Vector3) AdjustScaleAndPosition(BodyData target, BodyData src)
+    {
+        // first frame
+        Vector3 LShoulder_Target = target.jointFrameList[0].jointList[5];
+        Vector3 RShoulder_Target = target.jointFrameList[0].jointList[2];
+
+        Vector3 LShoulder_Src = src.jointFrameList[0].jointList[5];
+        Vector3 RShoulder_Src = src.jointFrameList[0].jointList[2];
+
+        // 스케일 계산
+        float robotDistance = Vector3.Distance(LShoulder_Target, RShoulder_Target);
+        float smplifyDistance = Vector3.Distance(LShoulder_Src, RShoulder_Src);
+        float scale = robotDistance / smplifyDistance;
+
+        // 위치 조정: 어깨 중심점을 기준으로 조정
+        Vector3 robotShoulderCenter = (LShoulder_Target + RShoulder_Target) / 2;
+        Vector3 smplifyShoulderCenter = (LShoulder_Src + RShoulder_Src) / 2 * scale;
+        Vector3 displacement = robotShoulderCenter - smplifyShoulderCenter;
+
+        return (scale, displacement);
     }
 }
 
