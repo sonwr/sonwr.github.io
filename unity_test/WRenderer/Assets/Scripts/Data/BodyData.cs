@@ -61,12 +61,14 @@ public class BodyData : MonoBehaviour
 
         // Init rotation
         Quaternion rotation = Quaternion.identity;
+        /*
         if (modelType == BodyType.DeepRobot)
             rotation = Quaternion.Euler(0, 0, 180);
         else if (modelType == BodyType.SMPLify)
             rotation = Quaternion.Euler(0, 0, 180);
         else if (modelType == BodyType.GroundTruth)
             rotation = Quaternion.identity;
+        */
 
         parentGameObject.transform.rotation = rotation;
 
@@ -232,96 +234,11 @@ public class BodyData : MonoBehaviour
             jointData.jointList = jointList;
             jointData.shapeList = shapeData.shape_param_frames[i].S;
 
-            List<Quaternion> poseList = ConvertOpenGLToUnity(ConvertToQuaternions(poseData.pose_parameters[i].R));
-            jointData.poseList = ConvertGroundTruthRotationToSMPL(poseList);
+            List<Quaternion> poseList = Util.ConvertOpenGLToUnity(Util.ConvertToQuaternions(poseData.pose_parameters[i].R));
+            jointData.poseList = Util.ConvertGroundTruthRotationToSMPL(poseList);
 
             jointFrameList.Add(jointData);
         }
-    }
-
-    public List<Quaternion> ConvertGroundTruthRotationToSMPL(List<Quaternion> rotationParameters)
-    {
-        // Convert global rotations to local rotations
-        List<Quaternion> localRotations = ConvertLocalRotation(rotationParameters);
-
-        // Reorder
-        List<Quaternion> reorderedRotations = ReorderQuaternions(localRotations, JointData.boneIndexNamesGroundTruth, JointData.boneIndexNamesSMPL);
-
-        return reorderedRotations;
-    }
-
-    private List<Quaternion> ConvertLocalRotation(List<Quaternion> globalRotations)
-    {
-        int[] boneParents = new int[] { -1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 11, 14, 15, 16, 17, 11, 19, 20, 21, 22 };
-        List<Quaternion> localRotations = new List<Quaternion>(new Quaternion[globalRotations.Count]);
-
-        for (int i = 0; i < globalRotations.Count; i++)
-        {
-            int parentIndex = boneParents[i];
-            if (parentIndex == -1)
-                localRotations[i] = globalRotations[i];
-            else
-                localRotations[i] = Quaternion.Inverse(globalRotations[parentIndex]) * globalRotations[i];
-        }
-
-        return localRotations;
-    }
-
-    private List<Quaternion> ReorderQuaternions(List<Quaternion> originalRotations, string[] srcOrder, string[] destOrder)
-    {
-        List<Quaternion> reorderedRotations = new List<Quaternion>(new Quaternion[destOrder.Length]);
-
-        for (int i = 0; i < destOrder.Length; i++)
-        {
-            int indexInGroundTruth = System.Array.IndexOf(srcOrder, destOrder[i]);
-            if (indexInGroundTruth != -1)
-            {
-                reorderedRotations[i] = originalRotations[indexInGroundTruth];
-            }
-            else
-            {
-                Debug.LogError($"Bone {destOrder[i]} not found in ground truth names.");
-                reorderedRotations[i] = Quaternion.identity; // Default rotation if not found
-            }
-        }
-
-        return reorderedRotations;
-    }
-
-    // OpenGL coord -> Unity coord: y flip, z flip
-    public static List<Quaternion> ConvertOpenGLToUnity(List<Quaternion> quaternions)
-    {
-        List<Quaternion> convertedQuaternions = new List<Quaternion>();
-
-        foreach (Quaternion quaternion in quaternions)
-        {
-            // OpenGL에서 Unity로 변환하기 위해 y와 z의 부호를 변경합니다.
-            Quaternion convertedQuaternion = new Quaternion(quaternion.x, -quaternion.y, -quaternion.z, quaternion.w);
-            convertedQuaternions.Add(convertedQuaternion);
-        }
-
-        return convertedQuaternions;
-    }
-
-    public static List<Quaternion> ConvertToQuaternions(List<List<float>> floatLists)
-    {
-        List<Quaternion> quaternions = new List<Quaternion>();
-
-        foreach (List<float> floatList in floatLists)
-        {
-            // 정상적인 Quaternion 데이터를 가지고 있는지 확인합니다.
-            if (floatList.Count == 4)
-            {
-                Quaternion quaternion = new Quaternion(floatList[0], floatList[1], floatList[2], floatList[3]);
-                quaternions.Add(quaternion);
-            }
-            else
-            {
-                Debug.LogError("List<float> does not contain exactly 4 elements.");
-            }
-        }
-
-        return quaternions;
     }
 
     private void LoadFileDeepRobotOrSMPLify(int frameStartIndex, int frameLastIndex)
@@ -354,7 +271,7 @@ public class BodyData : MonoBehaviour
             for (int j = 0; j < joints.Length; j++)
             {
                 float x = joints[j][0] * scale;
-                float y = joints[j][1] * scale;
+                float y = joints[j][1] * scale * -1;
                 float z = joints[j][2] * scale;
 
                 Vector3 position = new Vector3(x, y, z);
@@ -363,9 +280,9 @@ public class BodyData : MonoBehaviour
 
             // Convert
             if (modelType == BodyType.DeepRobot)
-                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
+                jointData.jointList = Util.ConvertJointDataOrder(jointList, JointData.boneIndexNamesDeepRobotJoint, JointData.boneIndexNamesOpenpose);
             else if (modelType == BodyType.SMPLify)
-                jointData.jointList = ConvertJointDataOrder(jointList, JointData.boneIndexNamesSMPL, JointData.boneIndexNamesOpenpose);
+                jointData.jointList = Util.ConvertJointDataOrder(jointList, JointData.boneIndexNamesSMPL, JointData.boneIndexNamesOpenpose);
 
 
             // Shape & Pose
@@ -395,10 +312,10 @@ public class BodyData : MonoBehaviour
                 for (int k = 0; k < poseAndShapeData.pose.Count; k += 3)
                 {
                     Vector3 rodVector = new Vector3(poseAndShapeData.pose[k], poseAndShapeData.pose[k + 1], poseAndShapeData.pose[k + 2]);
-                    Quaternion quaternion = RodriguesToQuaternion(rodVector);
+                    Quaternion quaternion = Util.RodriguesToQuaternion(rodVector);
                     poseList.Add(quaternion);
                 }
-                jointData.poseList = ConvertOpenGLToUnity(poseList);
+                jointData.poseList = Util.ConvertOpenGLToUnity(poseList);
 
                 // Assigning shape parameters directly
                 jointData.shapeList = poseAndShapeData.betas;
@@ -413,74 +330,31 @@ public class BodyData : MonoBehaviour
         if (poseList == null || poseList.Count < JointData.poseCount)
             return;
 
+        List<Vector3> convertedJointList = Util.MultiplyYByNegativeOne(jointList);
+
         //poseList[0] = Quaternion.Euler(0, 180, 0);
 
         // Left Shoulder
-        poseList[17] = CalcJointRotation(jointList[1], jointList[5], jointList[6]);
+        poseList[17] = Util.CalcJointRotation(convertedJointList[1], convertedJointList[5], convertedJointList[6]);
         // Left Elbow
-        poseList[19] = CalcJointRotation(jointList[5], jointList[6], jointList[7]);
+        poseList[19] = Util.CalcJointRotation(convertedJointList[5], convertedJointList[6], convertedJointList[7]);
 
         // Right Shoulder
-        poseList[16] = CalcJointRotation(jointList[1], jointList[2], jointList[3]);
+        poseList[16] = Util.CalcJointRotation(convertedJointList[1], convertedJointList[2], convertedJointList[3]);
         // Right Elbow
-        poseList[18] = CalcJointRotation(jointList[2], jointList[3], jointList[4]);
+        poseList[18] = Util.CalcJointRotation(convertedJointList[2], convertedJointList[3], convertedJointList[4]);
 
         // TODO: 좌우 다리가 반대로 나옴
 
         // Left Hip
-        poseList[1] = CalcJointRotation(jointList[1], jointList[12], jointList[13]);
+        poseList[1] = Util.CalcJointRotation(convertedJointList[1], convertedJointList[12], convertedJointList[13]);
         // Left Knee
-        poseList[4] = CalcJointRotation(jointList[12], jointList[13], jointList[14]);
+        poseList[4] = Util.CalcJointRotation(convertedJointList[12], convertedJointList[13], convertedJointList[14]);
 
         // Right Hip
-        poseList[2] = CalcJointRotation(jointList[1], jointList[9], jointList[10]);
+        poseList[2] = Util.CalcJointRotation(convertedJointList[1], convertedJointList[9], convertedJointList[10]);
         // Right Knee
-        poseList[5] = CalcJointRotation(jointList[9], jointList[10], jointList[11]);
-    }
-
-    private Quaternion CalcJointRotation(Vector3 joint1, Vector3 joint2, Vector3 joint3)
-    {
-        Vector3 vector1 = new Vector3(joint2.x, joint2.y, joint2.z) -
-                          new Vector3(joint1.x, joint1.y, joint1.z);
-
-        Vector3 vector2 = new Vector3(joint3.x, joint3.y, joint3.z) -
-                          new Vector3(joint2.x, joint2.y, joint2.z);
-
-        return Quaternion.FromToRotation(vector1, vector2);
-    }
-
-    private Quaternion RodriguesToQuaternion(Vector3 rodVector)
-    {
-        float theta = rodVector.magnitude;
-        if (theta < 1e-6)
-        {
-            return Quaternion.identity;
-        }
-        else
-        {
-            Vector3 axis = rodVector.normalized;
-            return Quaternion.AngleAxis(theta * Mathf.Rad2Deg, axis);
-        }
-    }
-
-    private List<Vector3> ConvertJointDataOrder(List<Vector3> jointData, string[] srcOrder, string[] destOrder)
-    {
-        List<Vector3> reorderJointData = new List<Vector3>(new Vector3[destOrder.Length]);
-        Dictionary<string, int> srcIndexMap = new Dictionary<string, int>();
-
-        for (int i = 0; i < srcOrder.Length; i++)
-            srcIndexMap[srcOrder[i]] = i;
-
-        for (int i = 0; i < destOrder.Length; i++)
-        {
-            string boneName = destOrder[i];
-            if (srcIndexMap.ContainsKey(boneName))
-                reorderJointData[i] = jointData[srcIndexMap[boneName]];
-            else
-                reorderJointData[i] = Vector3.zero;
-        }
-
-        return reorderJointData;
+        poseList[5] = Util.CalcJointRotation(convertedJointList[9], convertedJointList[10], convertedJointList[11]);
     }
 
     public void SetScaleAndDisplacement(float scale, Vector3 displacement)
