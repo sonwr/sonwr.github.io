@@ -603,6 +603,17 @@ def run_single_fit(img,
         json.dump(json_data_list3, json_file)  
 
 
+    # pose/betas json
+    pose = params['pose'].tolist()
+    betas = params['betas'].tolist()
+    _params = {
+        'pose': pose,
+        'betas': betas
+    }
+    with open("output.json", 'w') as f:
+        json.dump(_params, f, indent=4)
+
+
     # ==================Jtr Plot===============        
     # Create a 3D plot
     fig = plt2.figure()
