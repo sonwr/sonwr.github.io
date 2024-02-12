@@ -225,7 +225,13 @@ def optimize_on_joints(j2d,
     t0 = time()
     # define the mapping LSP joints -> SMPL joints
     # cids are joints ids for LSP:
-    cids = range(12) + [13]
+    #cids = range(12) + [13]
+    cids = range(12)    # (WR) ignore neck joint fit
+        
+    # (WR) ignore neck joint fit
+    j2d = np.delete(j2d, 13, axis=0)
+    conf = np.delete(conf, 13)
+
     # joint ids for SMPL
     # SMPL does not have a joint for head, instead we use a vertex for the head
     # and append it later.
@@ -237,8 +243,8 @@ def optimize_on_joints(j2d,
     # weights assigned to each joint during optimization;
     # the definition of hips in SMPL and LSP is significantly different so set
     # their weights to zero
-    base_weights = np.array(
-        [1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.float64)
+    #base_weights = np.array([1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.float64)
+    base_weights = np.array([1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.float64) # (WR) ignore neck joint fit
 
     if try_both_orient:
         flipped_orient = cv2.Rodrigues(body_orient)[0].dot(
@@ -291,12 +297,14 @@ def optimize_on_joints(j2d,
             sv.pose, J_onbetas, model.kintree_table, xp=ch)
         Jtr = ch.vstack([g[:3, 3] for g in A_global]) + sv.trans
 
+        # (WR) ignore neck joint fit
         # add the head joint, corresponding to a vertex...
-        Jtr = ch.vstack((Jtr, sv[head_id]))
+        #Jtr = ch.vstack((Jtr, sv[head_id]))
 
+        # (WR) ignore neck joint fit
         # ... and add the joint id to the list
-        if o_id == 0:
-            smpl_ids.append(len(Jtr) - 1)
+        #if o_id == 0:
+        #    smpl_ids.append(len(Jtr) - 1)
 
         # update the weights using confidence values
         weights = base_weights * conf[
@@ -304,6 +312,7 @@ def optimize_on_joints(j2d,
 
         # project SMPL joints on the image plane using the estimated camera
         cam.v = Jtr
+
 
         # data term: distance between observed and estimated joints in 2D
         obj_j2d = lambda w, sigma: (
@@ -386,6 +395,8 @@ def optimize_on_joints(j2d,
 
             if regs is not None:
                 objs['sph_coll'] = 1e3 * sp
+
+            
 
             ch.minimize(
                 objs,
@@ -553,7 +564,7 @@ def run_single_fit(img,
     #Jtr_world = np.dot(Jtr - cam_translation, R.T)
 
     json_data_list = Jtr_world.tolist()
-    with open("output_world_jtr.json", "w") as json_file:
+    with open("output_jtr2.json", "w") as json_file:
         json.dump(json_data_list, json_file)      
 
         
@@ -568,7 +579,7 @@ def run_single_fit(img,
     Jtr_world2 = np.array([R_inv.dot(joint) - cam.t.r for joint in joints_3d])
 
     json_data_list2 = Jtr_world2.tolist()
-    with open("output_world_jtr2.json", "w") as json_file:
+    with open("output_jtr3.json", "w") as json_file:
         json.dump(json_data_list2, json_file)  
 
 
@@ -588,8 +599,19 @@ def run_single_fit(img,
     joints_3d_cam = joints_3d_cam[:, :3]
 
     json_data_list3 = joints_3d_cam.tolist()
-    with open("output_world_jtr3.json", "w") as json_file:
+    with open("output_jtr4.json", "w") as json_file:
         json.dump(json_data_list3, json_file)  
+
+
+    # pose/betas json
+    pose = params['pose'].tolist()
+    betas = params['betas'].tolist()
+    _params = {
+        'pose': pose,
+        'betas': betas
+    }
+    with open("output.json", 'w') as f:
+        json.dump(_params, f, indent=4)
 
 
     # ==================Jtr Plot===============        
@@ -609,7 +631,7 @@ def run_single_fit(img,
     ax.set_zlabel('Z')
 
     # Show the 3D plot
-    plt2.show()
+    #plt2.show()
     # =========================================
 
 
@@ -660,8 +682,8 @@ def main(base_dir,
 
 
     # Load images
-    img_path = 'robot_test/input.jpg'
-    out_path = 'robot_test/output.pkl'
+    img_path = 'input.jpg'
+    out_path = 'output.pkl'
     if not exists(out_path):
         _LOGGER.info('Fitting 3D body on `%s` (saving to `%s`).', img_path, out_path)
         img = cv2.imread(img_path)
@@ -669,13 +691,13 @@ def main(base_dir,
             _LOGGER.warn("The image is grayscale!")
             img = np.dstack((img, img, img))
         
-        with open('robot_test/output_joints.json', 'r') as file:
+        with open('input_joints.json', 'r') as file:
             joints_json = file.read()
         joints_json_list = json.loads(joints_json)
         joints_orig = np.array(joints_json_list)
         joints = np.copy(joints_orig)
         
-        with open('robot_test/output_conf.json', 'r') as file:
+        with open('input_conf.json', 'r') as file:
             conf_json = file.read()
         conf_json_list = json.loads(conf_json)
         conf_orig = np.array(conf_json_list)
@@ -683,6 +705,9 @@ def main(base_dir,
         
         #robot_ids = [-1, 4, 3, -1, 8, 7, -1, 12, 11, -1, -1, -1, -1, -1, -1, -1, 2, 1, 6, 5, 10, 9]
         robot_ids = [11, 7, 3, 4, 8, 12, 9, 5, 1, 2, 6, 10, 0]
+
+        # joints_orig -> KIST(2)
+        # joints -> LSP
 
         joints[0] = joints_orig[10]
         joints[1] = joints_orig[9]
@@ -697,6 +722,7 @@ def main(base_dir,
         joints[10] = joints_orig[6]
         joints[11] = joints_orig[7]
         joints[12] = joints_orig[1]
+        joints[13] = joints_orig[0]
         
         conf[0] = conf_orig[10]
         conf[1] = conf_orig[9]
@@ -711,6 +737,7 @@ def main(base_dir,
         conf[10] = conf_orig[6]
         conf[11] = conf_orig[7]
         conf[12] = conf_orig[1]
+        conf[13] = conf_orig[0]
         
         params, vis = run_single_fit(
             img,
