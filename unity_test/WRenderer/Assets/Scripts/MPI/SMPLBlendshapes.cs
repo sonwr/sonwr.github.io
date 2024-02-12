@@ -73,7 +73,6 @@ public class SMPLBlendshapes : MonoBehaviour {
 	private float[] _shapeParms;
 
     // Unity Animator를 이용해서 Pose를 업데이트
-    public JointRenderer jointRenderer;
     public Animator animator;
 
     void Awake()
