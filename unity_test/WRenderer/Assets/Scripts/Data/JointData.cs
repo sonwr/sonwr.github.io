@@ -60,4 +60,21 @@ public class JointData
         poseList = new List<Quaternion>();
         shapeList = new List<float>();
     }
+
+    // L_Hip과 R_Hip의 중간값을 계산하는 함수
+    public Vector3 CalculatePelvisPosition()
+    {
+        // L_Hip과 R_Hip의 인덱스를 찾음
+        int lHipIndex = System.Array.IndexOf(boneIndexNamesOpenpose, "L_Hip");
+        int rHipIndex = System.Array.IndexOf(boneIndexNamesOpenpose, "R_Hip");
+
+        // L_Hip과 R_Hip의 Vector3 값을 가져옴
+        Vector3 lHip = jointList[lHipIndex];
+        Vector3 rHip = jointList[rHipIndex];
+
+        // 두 점의 중간값을 계산
+        Vector3 midPoint = (lHip + rHip) / 2;
+
+        return midPoint;
+    }
 }

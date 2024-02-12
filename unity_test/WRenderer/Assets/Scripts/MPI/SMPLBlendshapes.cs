@@ -341,8 +341,7 @@ public class SMPLBlendshapes : MonoBehaviour {
 		calculateJoints();
 	}
 
-
-    public void setShapeAndPoseParameters(List<float> shapeParams, List<Quaternion> poseParams)
+    public void setShapeAndPoseParameters(List<float> shapeParams, List<Quaternion> poseParams, Vector3 pelvisPosition)
     {
         for (int i = 0; i < shapeParams.Count; i++)
             _shapeParms[i] = shapeParams[i] / 100.0f;// + Random.Range(0, 1);
@@ -352,7 +351,8 @@ public class SMPLBlendshapes : MonoBehaviour {
         setShapeBlendValues();
 
         // Update Pose Rotation
-        float[] trans = new float[3] { 0.0f, 0.0f, 0.0f };	// pelvis position
+        //float[] trans = new float[3] { 0.0f, 0.0f, 0.0f };	// pelvis position
+        float[] trans = new float[3] { pelvisPosition.x, pelvisPosition.y, pelvisPosition.z };	// pelvis position
         float[][] pose = new float[poseParams.Count][];
 
         for (int i = 0; i < pose.Length; i++)
@@ -367,7 +367,7 @@ public class SMPLBlendshapes : MonoBehaviour {
         _modifyBones.updateBoneAngles(pose, trans);
     }
 
-
+	/*
     public void setShapeParms(List<float> shapeParams, List<List<float>> poseParams)
     {
 		for (int i = 0; i < shapeParams.Count; i++)
@@ -385,7 +385,9 @@ public class SMPLBlendshapes : MonoBehaviour {
         //float[][] pose = convertGroundTruthRotationToSMPL(poseParams);
         //_modifyBones.updateBoneAngles(pose, trans);
     }
+	*/
 
+	/*
 	// Ground Truth 결과 (Rotation Parameter)를 SMPL의 Pose Parameter 형태로 변환하는 함수
     private float[][] convertGroundTruthRotationToSMPL(List<Quaternion> rotationParameters)
     {
@@ -413,4 +415,5 @@ public class SMPLBlendshapes : MonoBehaviour {
 
 		return rotationsAsFloats;
     }
+	*/
 }

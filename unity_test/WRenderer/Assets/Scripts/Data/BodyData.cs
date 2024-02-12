@@ -26,6 +26,7 @@ public class BodyData : MonoBehaviour
     private List<GameObject> jointGameObjects;
     private List<GameObject> boneGameObjects;
     private GameObject smplObject;
+    private GameObject smplObject2;
 
     private float alignScale = 1.0f;
     private Vector3 alignDisplacement = new Vector3();
@@ -111,10 +112,23 @@ public class BodyData : MonoBehaviour
         else if (modelType == BodyType.GroundTruth)
             rotation = Quaternion.identity;
 
-        smplObject = Instantiate(smplPrefab, position, rotation);
-        Transform childTransform = smplObject.transform.Find("m_avg");
-        childTransform.GetComponent<Renderer>().material.color = color;
-        smplObject.transform.SetParent(parentGameObject.transform);
+        // SMPL 1
+        {
+            smplObject = Instantiate(smplPrefab, position, rotation);
+            Transform childTransform = smplObject.transform.Find("m_avg");
+            childTransform.GetComponent<Renderer>().material.color = color;
+            smplObject.transform.SetParent(parentGameObject.transform);
+        }
+
+        // SMPL 2
+        {
+            position = new Vector3(2.0f, 0, 0);
+
+            smplObject2 = Instantiate(smplPrefab, position, rotation);
+            Transform childTransform = smplObject2.transform.Find("m_avg");
+            childTransform.GetComponent<Renderer>().material.color = color;
+            smplObject2.transform.SetParent(parentGameObject.transform);
+        }
     }
 
     public void Render(int frameIndex, int frameStartIndex, int frameLastIndex)
@@ -159,12 +173,28 @@ public class BodyData : MonoBehaviour
             boneGameObjects[i].SetActive(true);
         }
 
-        // SMPL
-        Transform childTransform = smplObject.transform.Find("m_avg");
-        SMPLBlendshapes smplBlendshapes = childTransform.GetComponent<SMPLBlendshapes>();
+        // SMPL 1
+        {
+            Transform childTransform = smplObject.transform.Find("m_avg");
+            SMPLBlendshapes smplBlendshapes = childTransform.GetComponent<SMPLBlendshapes>();
 
-        if (jointData.shapeList.Count == JointData.shapeCount && jointData.poseList.Count == JointData.poseCount)
-            smplBlendshapes.setShapeAndPoseParameters(jointData.shapeList, jointData.poseList);
+            if (jointData.shapeList.Count == JointData.shapeCount && jointData.poseList.Count == JointData.poseCount)
+                smplBlendshapes.setShapeAndPoseParameters(jointData.shapeList, jointData.poseList, new Vector3(0, 0, 0));
+        }
+
+        // SMPL 2
+        {
+            JointData firstFrameJointData = jointFrameList[0];
+            Vector3 pelvisPosition1 = firstFrameJointData.CalculatePelvisPosition();
+            Vector3 pelvisPosition2 = jointData.CalculatePelvisPosition();
+            Vector3 pelvisPosition = pelvisPosition2 - pelvisPosition1;
+
+            Transform childTransform = smplObject2.transform.Find("m_avg");
+            SMPLBlendshapes smplBlendshapes = childTransform.GetComponent<SMPLBlendshapes>();
+
+            if (jointData.shapeList.Count == JointData.shapeCount && jointData.poseList.Count == JointData.poseCount)
+                smplBlendshapes.setShapeAndPoseParameters(jointData.shapeList, jointData.poseList, pelvisPosition);
+        }
     }
 
     // 활성 상태인 부모 GameObject를 재귀적으로 찾는 함수
