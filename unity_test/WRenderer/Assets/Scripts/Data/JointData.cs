@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class JointData
 {
-    public List<Vector3> jointList;     // Joint (Openpose Order), size=25
+    public List<Vector3> jointList;     // Joint (Openpose Order), size=25, unit=meter
     public List<Quaternion> poseList;   // SMPL pose parameter, size=24
     public List<float> shapeList;       // SMPL shape parameter, size=10
 

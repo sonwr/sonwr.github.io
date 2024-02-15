@@ -145,4 +145,147 @@ public class Util
         return quaternions;
     }
 
+    // Calculate Mean Per Joint Position Error (MPJPE)
+    public static float CalculateMPJPE(JointData a, JointData b)
+    {
+        List<Vector3> jointListA = a.jointList;
+        List<Vector3> jointListB = b.jointList;
+
+        if (jointListA.Count != jointListB.Count)
+        {
+            Debug.LogError("Lists must be of the same size.");
+            return -1;
+        }
+
+        float totalDistance = 0f;
+        for (int i = 0; i < jointListA.Count; i++)
+        {
+            totalDistance += Vector3.Distance(jointListA[i], jointListB[i]);
+        }
+
+        return totalDistance / jointListA.Count;
+    }
+
+    // Calculate Mean Per Joint Rotation Error (MPJRE)
+    public static float CalculateMPJRE(JointData a, JointData b)
+    {
+        List<Quaternion> poseListA = a.poseList;
+        List<Quaternion> poseListB = b.poseList;
+
+        if (poseListA.Count != poseListB.Count)
+        {
+            Debug.LogError("Lists must be of the same size.");
+            return -1;
+        }
+
+        float totalAngleDifference = 0f;
+        for (int i = 0; i < poseListA.Count; i++)
+        {
+            float angleDiff = Quaternion.Angle(poseListA[i], poseListB[i]);
+            totalAngleDifference += angleDiff;
+        }
+
+        return totalAngleDifference / poseListA.Count;
+    }
+
+    // Calculate RootE: global root error in centimeters
+    public static float CalculateRootE(JointData a, JointData b)
+    {
+        // Calculate the distance between the predicted and actual pelvis positions
+        Vector3 predictedPelvis = a.CalculatePelvisPosition();
+        Vector3 actualPelvis = b.CalculatePelvisPosition();
+
+        float distance = Vector3.Distance(predictedPelvis, actualPelvis);
+        return distance;
+    }
+
+    // Calculate Mean Per Joint Position Error (MPJPE) for multiple frames
+    public static float CalculateMPJPE(List<JointData> framesA, List<JointData> framesB)
+    {
+        if (framesA.Count != framesB.Count)
+        {
+            Debug.LogError("Frame lists must be of the same size.");
+            return -1;
+        }
+
+        float totalError = 0f;
+        for (int i = 0; i < framesA.Count; i++)
+        {
+            totalError += CalculateMPJPE(framesA[i], framesB[i]);
+        }
+
+        return totalError / framesA.Count;
+    }
+
+    // Calculate Mean Per Joint Rotation Error (MPJRE) for multiple frames
+    public static float CalculateMPJRE(List<JointData> framesA, List<JointData> framesB)
+    {
+        if (framesA.Count != framesB.Count)
+        {
+            Debug.LogError("Frame lists must be of the same size.");
+            return -1;
+        }
+
+        float totalError = 0f;
+        for (int i = 0; i < framesA.Count; i++)
+        {
+            totalError += CalculateMPJRE(framesA[i], framesB[i]);
+        }
+
+        return totalError / framesA.Count;
+    }
+
+    // Calculate RootE: global root error in centimeters for multiple frames
+    public static float CalculateRootE(List<JointData> framesA, List<JointData> framesB)
+    {
+        if (framesA.Count != framesB.Count)
+        {
+            Debug.LogError("Frame lists must be of the same size.");
+            return -1;
+        }
+
+        float totalDistance = 0f;
+        for (int i = 0; i < framesA.Count; i++)
+        {
+            totalDistance += CalculateRootE(framesA[i], framesB[i]);
+        }
+
+        return totalDistance / framesA.Count;
+    }
+
+    // Calculate temporal joint jitter for a single list of frames
+    public static float CalculateTemporalJointJitter(List<JointData> frames)
+    {
+        if (frames.Count < 3)
+        {
+            Debug.LogError("Need at least 3 frames to calculate temporal jitter.");
+            return -1f;
+        }
+
+        int numberOfJoints = frames[0].jointList.Count;
+        float totalJitter = 0f;
+
+        // Loop over each joint
+        for (int jointIndex = 0; jointIndex < numberOfJoints; jointIndex++)
+        {
+            float jointJitter = 0f;
+
+            // Loop over each frame, starting from 1 and ending at count - 1 to avoid out of range errors
+            for (int frameIndex = 1; frameIndex < frames.Count - 1; frameIndex++)
+            {
+                Vector3 jt = frames[frameIndex].jointList[jointIndex];
+                Vector3 jtMinus1 = frames[frameIndex - 1].jointList[jointIndex];
+                Vector3 jtPlus1 = frames[frameIndex + 1].jointList[jointIndex];
+
+                Vector3 jitterVec = (jt - jtMinus1 + jtPlus1) / 2f;
+                jointJitter += jitterVec.sqrMagnitude; // Use squared magnitude for efficiency
+            }
+
+            // Average the jitter over all frames for this joint
+            totalJitter += Mathf.Sqrt(jointJitter / (frames.Count - 2));
+        }
+
+        // Average the jitter over all joints
+        return totalJitter / numberOfJoints;
+    }
 }
