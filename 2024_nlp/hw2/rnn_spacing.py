@@ -151,7 +151,7 @@ config = {
     "batch_size": 64,
     "epoch": 10,
     "output_dir": "./model_output",  # Output directory for model checkpoints
-    "model_name": "model_final.pt"  # Model file to load for testing
+    "model_name":"epoch_{0:d}.pt".format(5),
 }
 
 # Load the dataset
