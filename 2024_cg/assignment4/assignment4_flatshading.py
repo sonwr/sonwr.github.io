@@ -32,7 +32,7 @@ def create_scene():
 
             x = math.sin(theta) * math.cos(phi)
             y = math.cos(theta)
-            z = -math.sin(theta) * math.sin(phi)
+            z = 2* -math.sin(theta) * math.sin(phi)
 
             # Set vertex t in the vertex array to {x, y, z}.
             vertices[t] = [x, y, z]
@@ -68,9 +68,6 @@ def create_scene():
         t += 6
 
     #print(gIndexBuffer[:10])
-
-        
-
     return vertices, gIndexBuffer.reshape((-1, 3))
 
 def transform_sphere(vertices, scale=2, translate=(0, 0, -7)):
@@ -106,11 +103,18 @@ def barycentric_coords(p, a, b, c):
 
 def perspective_projection(vertices, l, r, b, t, n, f):
     # Perspective projection matrix
-    P = np.array([
-        [2 * n / (r - l), 0, (r + l) / (r - l), 0],
-        [0, 2 * n / (t - b), (t + b) / (t - b), 0],
-        [0, 0, -(f + n) / (f - n), -2 * f * n / (f - n)],
+    _P = np.array([
+        [(2 * n) / (r - l), 0, (r + l) / (r - l), 0],
+        [0, (2 * n) / (t - b), (t + b) / (t - b), 0],
+        [0, 0, -(f + n) / (f - n), -(2 * f * n) / (f - n)],
         [0, 0, -1, 0]
+    ])
+
+    P = np.array([
+        [(2 * n) / (r - l), 0, (l + r) / (l - r), 0],
+        [0, (2 * n) / (t - b), (b + t) / (b - t), 0],
+        [0, 0, (f + n) / (n - f), (2 * f * n) / (f - n)],
+        [0, 0, 1, 0]
     ])
 
     # Apply perspective projection
@@ -125,7 +129,8 @@ def perspective_projection(vertices, l, r, b, t, n, f):
 
     return projected_vertices
 
-def viewport_transform(vertices, nx, ny, near, far):
+
+def viewport_transform2(vertices, nx, ny, near, far):
     # Viewport transformation matrix
     V = np.array([
         [nx / 2, 0, 0, (nx - 1) / 2],
@@ -143,6 +148,25 @@ def viewport_transform(vertices, nx, ny, near, far):
 
     return transformed_vertices
 
+def viewport_transform(vertices, nx, ny):
+    # Viewport transformation matrix
+    V = np.array([
+        [nx / 2, 0, 0, (nx - 1) / 2],
+        [0, ny / 2, 0, (ny - 1) / 2],
+        [0, 0, nx + ny, 0],     # TODO: z-axis range
+        [0, 0, 0, 1]
+    ])
+
+    # Apply viewport transformation
+    homogeneous_vertices = np.column_stack((vertices, np.ones(vertices.shape[0])))
+    transformed_vertices = np.dot(homogeneous_vertices, V.T)
+
+    # Remove homogeneous coordinate
+    transformed_vertices = transformed_vertices[:, :3]
+
+    return transformed_vertices
+
+
 def calculate_triangle_normal(vertices, triangle):
     v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
     edge1 = v1 - v0
@@ -152,7 +176,7 @@ def calculate_triangle_normal(vertices, triangle):
     #print("[idx] x y z: ", triangle[0], triangle[1], triangle[2])
     #print("[val] x y z: ", vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]])
 
-    return normal / np.linalg.norm(normal)
+    return -(normal / np.linalg.norm(normal))   # TODO: normal 반대?
 
 def calculate_camera_direction(vertices):
     # 카메라 방향은 z 축을 따라 향하는 단위 벡터로 가정합니다.
@@ -169,6 +193,15 @@ def rasterize_triangles_with_dot_product(vertices, triangles, image_size=(512, 5
     # 최대값과 최소값 초기화
     max_dot_product = -np.inf
     min_dot_product = np.inf
+
+    max_z = -np.inf
+    min_z = np.inf
+
+    max_x = -np.inf
+    min_x = np.inf
+
+    max_y = -np.inf
+    min_y = np.inf
     
     for triangle in triangles:
         v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
@@ -185,10 +218,28 @@ def rasterize_triangles_with_dot_product(vertices, triangles, image_size=(512, 5
         max_dot_product = max(max_dot_product, dot_product)
         min_dot_product = min(min_dot_product, dot_product)
 
-    print("max_dot_product, min_dot_product: ", max_dot_product, min_dot_product)
-    
+        # 각 정점의 좌표값 업데이트
+        for vertex in [v0, v1, v2]:
+            max_x = max(max_x, vertex[0])
+            min_x = min(min_x, vertex[0])
+            max_y = max(max_y, vertex[1])
+            min_y = min(min_y, vertex[1])
+            
+        # z 값의 최대값 및 최소값 업데이트
+        triangle_z_values = [v0[2], v1[2], v2[2]]
+        max_z = max(max_z, *triangle_z_values)
+        min_z = min(min_z, *triangle_z_values)
+
     # 최대값과 최소값을 이용하여 정규화
     dot_product_range = max_dot_product - min_dot_product
+
+
+    print("max_dot_product, min_dot_product, dot_product_range: ", max_dot_product, min_dot_product, dot_product_range)
+    print("max_z, min_z: ", max_z, min_z)
+    print("max_x, min_x: ", max_x, min_x)
+    print("max_y, min_y: ", max_y, min_y)
+    print("ratio: ", (max_x - min_x), (max_z - min_z), (max_x - min_x) / (max_z - min_z))
+    
     
     for triangle in triangles:
         v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
@@ -230,12 +281,17 @@ def rasterize_triangles_with_dot_product(vertices, triangles, image_size=(512, 5
 # Create sphere data
 vertices, triangles = create_scene()
 transformed_vertices = transform_sphere(vertices)
+#transformed_vertices = vertices
+
+near = -0.1
+far = -1000
 
 # Apply perspective projection transform
-#transformed_vertices = perspective_projection(transformed_vertices, -0.1, 0.1, -0.1, 0.1, -0.1, -1000)
+transformed_vertices = perspective_projection(transformed_vertices, -0.1, 0.1, -0.1, 0.1, near, far)
 
 # Apply viewport transform
-transformed_vertices = viewport_transform(transformed_vertices, 512, 512, -0.1, -1000)
+#transformed_vertices = viewport_transform(transformed_vertices, 512, 512, near, far)
+transformed_vertices = viewport_transform(transformed_vertices, 512, 512)
 
 # Rasterize triangles
 image_with_normals = rasterize_triangles_with_dot_product(transformed_vertices, triangles, image_size=(512, 512))
