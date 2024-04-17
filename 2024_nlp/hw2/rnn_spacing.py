@@ -5,22 +5,27 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.metrics import accuracy_score
-
-
+  
 class SpacingRNN(nn.Module):
     def __init__(self, config):
         super(SpacingRNN, self).__init__()
         self.embedding = nn.Embedding(num_embeddings=config['eumjeol_vocab_size'], embedding_dim=config['embedding_size'], padding_idx=0)
         self.dropout = nn.Dropout(config['dropout'])
-        self.bi_lstm = nn.LSTM(input_size=config['embedding_size'], hidden_size=config['hidden_size'], num_layers=1, batch_first=True, bidirectional=True)
+        # 다층 LSTM 적용
+        self.lstm = nn.LSTM(input_size=config['embedding_size'], 
+                            hidden_size=config['hidden_size'], 
+                            num_layers=config['num_layers'],  # 층 수 추가
+                            batch_first=True, 
+                            bidirectional=True)
         self.linear = nn.Linear(in_features=config['hidden_size'] * 2, out_features=config['number_of_labels'])
 
     def forward(self, inputs):
-        eumjeol_inputs = self.embedding(inputs)
-        hidden_outputs, _ = self.bi_lstm(eumjeol_inputs)
-        hidden_outputs = self.dropout(hidden_outputs)
-        output = self.linear(hidden_outputs)
-        return output
+        x = self.embedding(inputs)
+        x = self.dropout(x)
+        x, _ = self.lstm(x)
+        x = self.dropout(x)
+        x = self.linear(x)
+        return x
 
 def read_datas(file_path):
     with open(file_path, "r", encoding="utf8") as inFile:
@@ -44,8 +49,8 @@ def read_vocab_data(eumjeol_vocab_data_path):
             idx2eumjeol[eumjeol2idx[eumjeol]] = eumjeol
     return eumjeol2idx, idx2eumjeol, label2idx, idx2label
 
-def load_dataset(config):
-    datas = read_datas(config["input_data"])
+def load_dataset(config, data_path):
+    datas = read_datas(data_path)
     eumjeol2idx, idx2eumjeol, label2idx, idx2label = read_vocab_data(config["eumjeol_vocab"])
     eumjeol_features, eumjeol_feature_lengths, label_features = [], [], []
 
@@ -64,7 +69,7 @@ def load_dataset(config):
 def train(config):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = SpacingRNN(config).to(device)
-    eumjeol_features, eumjeol_feature_lengths, label_features, eumjeol2idx, idx2eumjeol, label2idx, idx2label = load_dataset(config)
+    eumjeol_features, eumjeol_feature_lengths, label_features, eumjeol2idx, idx2eumjeol, label2idx, idx2label = load_dataset(config, config["train_data"])
     train_features = TensorDataset(eumjeol_features, eumjeol_feature_lengths, label_features)
     train_dataloader = DataLoader(train_features, shuffle=True, batch_size=config["batch_size"])
     loss_func = nn.CrossEntropyLoss(ignore_index=0)
@@ -111,7 +116,7 @@ def make_sentence(inputs, predicts, labels, idx2eumjeol, idx2label):
 
 def test(config):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    eumjeol_features, eumjeol_feature_lengths, label_features, eumjeol2idx, idx2eumjeol, label2idx, idx2label = load_dataset(config)
+    eumjeol_features, eumjeol_feature_lengths, label_features, eumjeol2idx, idx2eumjeol, label2idx, idx2label = load_dataset(config, config["test_data"])
     test_features = TensorDataset(eumjeol_features, eumjeol_feature_lengths, label_features)
     test_dataloader = DataLoader(test_features, shuffle=False, batch_size=1)
     model = SpacingRNN(config).to(device)
@@ -130,7 +135,7 @@ def test(config):
         hypothesis = tensor2list(hypothesis[0])[:input_length]
         total_hypothesis += hypothesis
         total_labels += label
-        if (step < 10):
+        if (step < 10): # 처음 10개만 화면에 예시로 출력
             predict_sentence, correct_sentence = make_sentence(input, hypothesis, label, idx2eumjeol, idx2label)
             print("정답 : " + correct_sentence)
             print("출력 : " + predict_sentence)
@@ -140,28 +145,29 @@ def test(config):
 
 # Configuration for model and dataset
 config = {
-    "eumjeol_vocab_size": 2000,  # Adjust according to actual vocab size
-    "embedding_size": 128,
-    "hidden_size": 64,
-    "dropout": 0.5,
-    "number_of_labels": 3,
-    "max_length": 920,  # Maximum length of sentences
-    "input_data": "train.txt",  # Path to the training data
-    "eumjeol_vocab": "eumjeol_vocab.txt",  # Path to the eumjeol vocabulary file
+    "inter_layer_dropout": 0.3,  # LSTM 층 사이의 드롭아웃
+    "num_layers": 5,  # LSTM 층 수
+    "dropout": 0.3, # 드롭아웃 레이어: 과적합을 방지하기 위해 특정 비율(config["dropout"])로 뉴런의 출력을 임의로 0으로 설정
+    "hidden_size": 64,  # RNN 히든 사이즈: LSTM 셀 또는 RNN 셀의 히든 상태의 차원 수를 설정. 네트워크의 메모리 용량을 결정
     "batch_size": 64,
-    "epoch": 10,
+    "epoch": 15,
+    "number_of_labels": 3,  # 분류할 라벨의 개수: 모델 출력층에서 예측할 라벨(클래스)의 개수
+    
+    "eumjeol_vocab_size": 2000,  # 전체 음절 개수: 모델이 인식하고 처리할 수 있는 고유 음절의 총 수를 정의
+    "embedding_size": 128,  # Embedding Size: 고차원 벡터를 훨씬 낮은 차원의 밀집 벡터(dense vector)로 변환
+    "max_length": 920,  # Maximum length of sentences
+    
+    "train_data": "train.txt",  # Path to the training data
+    "test_data": "test.txt",  # Path to the training data    
+    "eumjeol_vocab": "eumjeol_vocab.txt",  # Path to the eumjeol vocabulary file
     "output_dir": "./model_output",  # Output directory for model checkpoints
     "model_name":"epoch_{0:d}.pt".format(5),
 }
 
-# Load the dataset
-features, feature_lengths, labels, eumjeol2idx, idx2eumjeol, label2idx, idx2label = load_dataset(config)
-
-# Example: Initialize the model and print the first batch output
-model = SpacingRNN(config)
-with torch.no_grad():
-    output = model(features[:1])
-    print(output)
-
-train(config)
-#test(config)
+mode = input("Enter 'train' to train the model or 'test' to test: ").strip().lower()
+if mode == 'train':
+    train(config)
+elif mode == 'test':
+    test(config)
+else:
+    print("Invalid mode entered. Please enter 'train' or 'test'.")
