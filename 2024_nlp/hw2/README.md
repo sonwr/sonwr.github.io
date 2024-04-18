@@ -182,5 +182,20 @@ Original -> Accuracy : 0.9388721218906684
 Enhanced -> Accuracy : 0.9272080232934325
 ```
 
+## Additional Information for Google Colab Usage
+
+To run this project on Google Colab, use the `rnn_spacing.ipynb` notebook file. This notebook is configured to work with Colab's environment and includes necessary setup steps for installing dependencies and running the model seamlessly in the cloud.
+
+### Google Colab Results
+
+Below are the screenshots from Google Colab demonstrating the training and testing phases of the SpacingRNN model:
+
+#### Training Results on Google Colab
+![Training Results](colab_result_images/train.jpg)
+
+#### Testing Results on Google Colab
+![Testing Results](colab_result_images/test.jpg)
+
+
 ## Acknowledgements
 This project is based on the lecture materials provided by KUNLP. You can find the original materials at https://github.com/KUNLP/Lecture/tree/master/rnn/spacing. Special thanks to the contributors and authors of the lecture materials for their valuable insights and resources.
