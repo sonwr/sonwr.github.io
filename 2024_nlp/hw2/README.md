@@ -191,10 +191,10 @@ To run this project on Google Colab, use the `rnn_spacing.ipynb` notebook file. 
 Below are the screenshots from Google Colab demonstrating the training and testing phases of the SpacingRNN model:
 
 #### Training Results on Google Colab
-![Training Results](colab_result_images/train.jpg)
+![Training Results](colab_result_images/train.png)
 
 #### Testing Results on Google Colab
-![Testing Results](colab_result_images/test.jpg)
+![Testing Results](colab_result_images/test.png)
 
 
 ## Acknowledgements
