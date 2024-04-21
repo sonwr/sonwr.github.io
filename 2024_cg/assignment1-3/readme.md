@@ -1,5 +1,5 @@
 
-# Ray Tracing Lab - Spring 2024
+# Assignment 1-3: Ray Tracing
 
 This repository contains the implementation of a simple ray tracer designed for the Computer Graphics and Image Processing course in Spring 2024. The ray tracer is developed in Python and consists of three main parts: ray-object intersection, shading with the Phong model, and antialiasing.
 
