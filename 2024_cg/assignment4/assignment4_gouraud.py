@@ -108,25 +108,6 @@ def perspective_projection(vertices, l, r, b, t, n, f):
 
     return projected_vertices
 
-
-def viewport_transform2(vertices, nx, ny, near, far):
-    # Viewport transformation matrix
-    V = np.array([
-        [nx / 2, 0, 0, (nx - 1) / 2],
-        [0, ny / 2, 0, (ny - 1) / 2],
-        [0, 0, (far - near) / 2, (far + near) / 2],
-        [0, 0, 0, 1]
-    ])
-
-    # Apply viewport transformation
-    homogeneous_vertices = np.column_stack((vertices, np.ones(vertices.shape[0])))
-    transformed_vertices = np.dot(homogeneous_vertices, V.T)
-
-    # Remove homogeneous coordinate
-    transformed_vertices = transformed_vertices[:, :3]
-
-    return transformed_vertices
-
 def viewport_transform(vertices, nx, ny):
     # Viewport transformation matrix
     V = np.array([
@@ -218,190 +199,126 @@ def calculate_triangle_normal(vertices, triangle):
 
     return (normal / np.linalg.norm(normal))   # TODO: normal 반대?
 
-
-def calculate_triangle_normal_2(vertices, triangle):
-    v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
-    edge1 = v1 - v0
-    edge2 = v2 - v0
-    normal = np.cross(edge1, edge2)
-    if np.dot(normal, np.array([0, 0, 1])) < 0:
-        normal = -normal  # Ensuring normals face outward
-    return normal / np.linalg.norm(normal)
-
 def calculate_camera_direction():
     # 카메라 방향은 -z 축을 따라 향하는 단위 벡터로 가정합니다.
     camera_direction = np.array([0, 0, -1])
     return camera_direction
 
-def rasterize_triangles_with_dot_product(vertices, triangles, image_size=(512, 512)):
+def gouraud_shading(vertices, triangles, image_size=(512, 512)):
     image = Image.new("RGB", image_size, "black")
     pixels = image.load()
-    z_buffer = np.full(image_size, np.inf)
-    
-    camera_direction = calculate_camera_direction()
-    
-    # 최대값과 최소값 초기화
-    max_dot_product = -np.inf
-    min_dot_product = np.inf
 
-    max_z = -np.inf
-    min_z = np.inf
+    light_pos = np.array([-4, 4, -3])
+    light_intensity = {'ambient': 0.2, 'point': 1.0}
+    material = {'ka': np.array([0, 1, 0]), 'kd': np.array([0, 0.5, 0]), 'ks': np.array([0.5, 0.5, 0.5]), 'p': 32}
 
-    max_x = -np.inf
-    min_x = np.inf
+    vertex_colors = {}
 
-    max_y = -np.inf
-    min_y = np.inf
-    
+    # Calculate color at each vertex
+    for i in range(len(vertices)):
+        normal = calculate_normal_at_vertex(vertices, triangles, i)
+        color = calculate_lighting(normal, light_pos, vertices[i], material, light_intensity)
+        vertex_colors[i] = np.clip(color, 0, 255).astype(int)  # Ensure the color values are within RGB bounds
+
     for triangle in triangles:
         v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
-        normal = calculate_triangle_normal(vertices, triangle)
-        
-        # 카메라 방향과 normal 벡터의 dot product 계산
-        dot_product = np.dot(normal, camera_direction)
-        if dot_product <= 0:
-            continue
+        c0, c1, c2 = vertex_colors[triangle[0]], vertex_colors[triangle[1]], vertex_colors[triangle[2]]
 
-        #print("dot_product:", dot_product)
-
-        # 최대값 및 최소값 업데이트
-        max_dot_product = max(max_dot_product, dot_product)
-        min_dot_product = min(min_dot_product, dot_product)
-
-        # 각 정점의 좌표값 업데이트
-        for vertex in [v0, v1, v2]:
-            max_x = max(max_x, vertex[0])
-            min_x = min(min_x, vertex[0])
-            max_y = max(max_y, vertex[1])
-            min_y = min(min_y, vertex[1])
-            
-        # z 값의 최대값 및 최소값 업데이트
-        triangle_z_values = [v0[2], v1[2], v2[2]]
-        max_z = max(max_z, *triangle_z_values)
-        min_z = min(min_z, *triangle_z_values)
-
-    # 최대값과 최소값을 이용하여 정규화
-    dot_product_range = max_dot_product - min_dot_product
-
-
-    print("max_dot_product, min_dot_product, dot_product_range: ", max_dot_product, min_dot_product, dot_product_range)
-    print("max_z, min_z: ", max_z, min_z)
-    print("max_x, min_x: ", max_x, min_x)
-    print("max_y, min_y: ", max_y, min_y)
-    print("ratio: ", (max_x - min_x), (max_z - min_z), (max_x - min_x) / (max_z - min_z))
-    
-    
-    for triangle in triangles:
-        v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
-        normal = calculate_triangle_normal(vertices, triangle)
-        
-        # 카메라 방향과 normal 벡터의 dot product 계산
-        dot_product = np.dot(normal, camera_direction)
-        
-        # 내적이 음수인 경우에만 렌더링하고, 그렇지 않으면 스킵합니다.
-        if dot_product <= 0:
-            continue
-        
-        # dot product를 [0, 1] 범위로 정규화하여 색상값 계산
-        normalized_dot_product = (dot_product - min_dot_product) / dot_product_range
-        #print(normalized_dot_product)
-        color_value = int(normalized_dot_product * 255)
-        color = (color_value, color_value, color_value)
-        
-        # Triangle bounding box
+        # Triangle bounding box for rasterization
         xmin = max(min(v0[0], v1[0], v2[0]), 0)
         xmax = min(max(v0[0], v1[0], v2[0]), image_size[0] - 1)
         ymin = max(min(v0[1], v1[1], v2[1]), 0)
         ymax = min(max(v0[1], v1[1], v2[1]), image_size[1] - 1)
-        
+
         for x in range(int(xmin), int(xmax) + 1):
             for y in range(int(ymin), int(ymax) + 1):
                 u, v, w = barycentric_coords(np.array([x, y]), v0[:2], v1[:2], v2[:2])
                 if u >= 0 and v >= 0 and w >= 0:  # Point inside the triangle
-                    pixels[x, y] = color
-                    
-                    z = u * v0[2] + v * v1[2] + w * v2[2]
-                    if z_buffer[y, x] > z:
-                        z_buffer[y, x] = z
-                        
+                    # Color interpolation
+                    color = u * c0 + v * c1 + w * c2
+                    pixels[x, y] = tuple(color.astype(int))
+
     image.show()
     return image
 
+def gouraud_shading_with_depth_buffer(vertices, triangles, image_size=(512, 512)):
+    image = Image.new("RGB", image_size, "black")
+    pixels = image.load()
 
+    # Depth buffer 초기화
+    depth_buffer = np.full(image_size, np.inf)
+
+    light_pos = np.array([-4, 4, -3])
+    light_intensity = {'ambient': 0.2, 'point': 1.0}
+    material = {'ka': np.array([0, 1, 0]), 'kd': np.array([0, 0.5, 0]), 'ks': np.array([0.5, 0.5, 0.5]), 'p': 32}
+
+    vertex_colors = {}
+
+    # Calculate color at each vertex
+    for i in range(len(vertices)):
+        normal = calculate_normal_at_vertex(vertices, triangles, i)
+        color = calculate_lighting(normal, light_pos, vertices[i], material, light_intensity)
+        vertex_colors[i] = np.clip(color, 0, 255).astype(int)  # Ensure the color values are within RGB bounds
+
+    for triangle in triangles:
+        v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
+        c0, c1, c2 = vertex_colors[triangle[0]], vertex_colors[triangle[1]], vertex_colors[triangle[2]]
+
+        # Triangle bounding box for rasterization
+        xmin = max(min(v0[0], v1[0], v2[0]), 0)
+        xmax = min(max(v0[0], v1[0], v2[0]), image_size[0] - 1)
+        ymin = max(min(v0[1], v1[1], v2[1]), 0)
+        ymax = min(max(v0[1], v1[1], v2[1]), image_size[1] - 1)
+
+        for x in range(int(xmin), int(xmax) + 1):
+            for y in range(int(ymin), int(ymax) + 1):
+                u, v, w = barycentric_coords(np.array([x, y]), v0[:2], v1[:2], v2[:2])
+                if u >= 0 and v >= 0 and w >= 0:  # Point inside the triangle
+                    # Depth interpolation
+                    depth = u * v0[2] + v * v1[2] + w * v2[2]
+
+                    # Depth test
+                    if depth < depth_buffer[x, y]:
+                        # Color interpolation
+                        color = u * c0 + v * c1 + w * c2
+                        pixels[x, y] = tuple(color.astype(int))
+
+                        # Update depth buffer
+                        depth_buffer[x, y] = depth
+
+    image.show()
+    return image
+
+def calculate_normal_at_vertex(vertices, triangles, vertex_idx):
+    normals = []
+    for tri in triangles:
+        if vertex_idx in tri:
+            v0, v1, v2 = vertices[tri[0]], vertices[tri[1]], vertices[tri[2]]
+            normal = calculate_triangle_normal(vertices, [tri[0], tri[1], tri[2]])
+            normals.append(normal)
+    vertex_normal = np.mean(normals, axis=0)
+    return -vertex_normal
 
 def calculate_lighting(normal, light_pos, view_dir, material, light_intensity):
-    # Normalize vectors
     normal = normal / np.linalg.norm(normal)
     light_dir = light_pos - view_dir
     light_dir = light_dir / np.linalg.norm(light_dir)
     view_dir = -view_dir  # Camera looks along -view_dir
-    
-    # Ambient component
+
     ambient = material['ka'] * light_intensity['ambient']
-    
-    # Diffuse component
     diffuse = max(np.dot(normal, light_dir), 0) * material['kd']
-    
-    # Specular component
     reflect_dir = 2 * np.dot(normal, light_dir) * normal - light_dir
     reflect_dir = reflect_dir / np.linalg.norm(reflect_dir)
     specular_strength = np.power(max(np.dot(reflect_dir, -view_dir), 0), material['p'])
     specular = specular_strength * material['ks']
-    
-    # Sum components
+
     #color = ambient + light_intensity['point'] * (diffuse + specular)
     color = ambient + light_intensity['point'] * (diffuse)
     return np.clip(color, 0, 1) * 255  # Convert to RGB scale and clip
 
-def rasterize_triangles_with_flat_shading(vertices, triangles, image_size=(512, 512)):
-    image = Image.new("RGB", image_size, "black")
-    pixels = image.load()
-    
-    light_pos = np.array([-4, 4, -3])
-    light_intensity = {'ambient': 0.2, 'point': 1.0}
-    material = {'ka': np.array([0, 1, 0]), 'kd': np.array([0, 0.5, 0]), 'ks': np.array([0.5, 0.5, 0.5]), 'p': 32}
-    
-    for triangle in triangles:
-        centroid = (vertices[triangle[0]] + vertices[triangle[1]] + vertices[triangle[2]]) / 3
-        normal = calculate_triangle_normal(vertices, triangle)
 
-        dot_product = np.dot(normal, calculate_camera_direction())
-        if dot_product >= 0:
-            continue
-        
-        color = calculate_lighting(normal, light_pos, centroid, material, light_intensity)
-        color = tuple(color.astype(int))
-        if color[1] == 255:
-            print(f"Normal: {normal}, Dot Product: {dot_product}, Color: {color}")
-
-        
-
-        # Triangle bounding box
-        v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
-        xmin = max(min(v0[0], v1[0], v2[0]), 0)
-        xmax = min(max(v0[0], v1[0], v2[0]), image_size[0] - 1)
-        ymin = max(min(v0[1], v1[1], v2[1]), 0)
-        ymax = min(max(v0[1], v1[1], v2[1]), image_size[1] - 1)
-        
-        for x in range(int(xmin), int(xmax) + 1):
-            for y in range(int(ymin), int(ymax) + 1):
-                u, v, w = barycentric_coords(np.array([x, y]), v0[:2], v1[:2], v2[:2])
-                if u >= 0 and v >= 0 and w >= 0:  # Point inside the triangle
-                    pixels[x, y] = color
-    
-    image.show()
-    return image
-
-
-
-# constant
 near = -0.1
 far = -1000
-scale = 2
-translate = (0, 0, -7)
-l, r, b, t, n, f = -0.1, 0.1, -0.1, 0.1, -0.1, -1000
-nx, ny = 512, 512
-
 
 # Create sphere data
 vertices, triangles = create_scene()
@@ -413,12 +330,10 @@ transformed_vertices = perspective_projection(transformed_vertices, -0.1, 0.1, -
 # Apply viewport transform
 transformed_vertices = viewport_transform(transformed_vertices, 512, 512)
 
-# Rasterize triangles
-#image_with_normals = rasterize_triangles_with_dot_product(transformed_vertices, triangles, image_size=(512, 512))
-#image_with_normals.save("rasterized_sphere_with_normals.png")  # Save the image file
+#image_gouraud_shading = gouraud_shading(transformed_vertices, triangles, image_size=(512, 512))
+#image_gouraud_shading.save("rasterized_sphere_with_gouraud_shading.png")
 
-combined_matrix = combine_transformations(scale, translate, l, r, b, t, n, f, nx, ny)
-transformed_vertices2 = apply_transformation_matrix(vertices, combined_matrix)
 
-image_flat_shading = rasterize_triangles_with_flat_shading(transformed_vertices, triangles, image_size=(512, 512))
-image_flat_shading.save("rasterized_sphere_with_flat_shading.png")
+# depth buffer를 이용하여 가장 가까운 삼각형만을 그림으로 렌더링
+image_gouraud_shading_with_depth_buffer = gouraud_shading_with_depth_buffer(transformed_vertices, triangles, image_size=(512, 512))
+image_gouraud_shading_with_depth_buffer.save("rasterized_sphere_with_gouraud_shading_and_depth_buffer.png")
