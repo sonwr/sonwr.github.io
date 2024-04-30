@@ -176,10 +176,20 @@ def calculate_triangle_normal(vertices, triangle):
     #print("[idx] x y z: ", triangle[0], triangle[1], triangle[2])
     #print("[val] x y z: ", vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]])
 
-    return -(normal / np.linalg.norm(normal))   # TODO: normal 반대?
+    return (normal / np.linalg.norm(normal))   # TODO: normal 반대?
 
-def calculate_camera_direction(vertices):
-    # 카메라 방향은 z 축을 따라 향하는 단위 벡터로 가정합니다.
+
+def calculate_triangle_normal_2(vertices, triangle):
+    v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
+    edge1 = v1 - v0
+    edge2 = v2 - v0
+    normal = np.cross(edge1, edge2)
+    if np.dot(normal, np.array([0, 0, 1])) < 0:
+        normal = -normal  # Ensuring normals face outward
+    return normal / np.linalg.norm(normal)
+
+def calculate_camera_direction():
+    # 카메라 방향은 -z 축을 따라 향하는 단위 벡터로 가정합니다.
     camera_direction = np.array([0, 0, -1])
     return camera_direction
 
@@ -188,7 +198,7 @@ def rasterize_triangles_with_dot_product(vertices, triangles, image_size=(512, 5
     pixels = image.load()
     z_buffer = np.full(image_size, np.inf)
     
-    camera_direction = calculate_camera_direction(vertices)
+    camera_direction = calculate_camera_direction()
     
     # 최대값과 최소값 초기화
     max_dot_product = -np.inf
@@ -278,6 +288,71 @@ def rasterize_triangles_with_dot_product(vertices, triangles, image_size=(512, 5
     return image
 
 
+
+def calculate_lighting(normal, light_pos, view_dir, material, light_intensity):
+    # Normalize vectors
+    normal = normal / np.linalg.norm(normal)
+    light_dir = light_pos - view_dir
+    light_dir = light_dir / np.linalg.norm(light_dir)
+    view_dir = -view_dir  # Camera looks along -view_dir
+    
+    # Ambient component
+    ambient = material['ka'] * light_intensity['ambient']
+    
+    # Diffuse component
+    diffuse = max(np.dot(normal, light_dir), 0) * material['kd']
+    
+    # Specular component
+    reflect_dir = 2 * np.dot(normal, light_dir) * normal - light_dir
+    reflect_dir = reflect_dir / np.linalg.norm(reflect_dir)
+    specular_strength = np.power(max(np.dot(reflect_dir, -view_dir), 0), material['p'])
+    specular = specular_strength * material['ks']
+    
+    # Sum components
+    #color = ambient + light_intensity['point'] * (diffuse + specular)
+    color = ambient + light_intensity['point'] * (diffuse)
+    return np.clip(color, 0, 1) * 255  # Convert to RGB scale and clip
+
+def rasterize_triangles_with_flat_shading(vertices, triangles, image_size=(512, 512)):
+    image = Image.new("RGB", image_size, "black")
+    pixels = image.load()
+    
+    light_pos = np.array([-4, 4, -3])
+    light_intensity = {'ambient': 0.2, 'point': 1.0}
+    material = {'ka': np.array([0, 1, 0]), 'kd': np.array([0, 0.5, 0]), 'ks': np.array([0.5, 0.5, 0.5]), 'p': 32}
+    
+    for triangle in triangles:
+        centroid = (vertices[triangle[0]] + vertices[triangle[1]] + vertices[triangle[2]]) / 3
+        normal = calculate_triangle_normal(vertices, triangle)
+
+        dot_product = np.dot(normal, calculate_camera_direction())
+        if dot_product >= 0:
+            continue
+        
+        color = calculate_lighting(normal, light_pos, centroid, material, light_intensity)
+        color = tuple(color.astype(int))
+        if color[1] == 255:
+            print(f"Normal: {normal}, Dot Product: {dot_product}, Color: {color}")
+
+        
+
+        # Triangle bounding box
+        v0, v1, v2 = vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]]
+        xmin = max(min(v0[0], v1[0], v2[0]), 0)
+        xmax = min(max(v0[0], v1[0], v2[0]), image_size[0] - 1)
+        ymin = max(min(v0[1], v1[1], v2[1]), 0)
+        ymax = min(max(v0[1], v1[1], v2[1]), image_size[1] - 1)
+        
+        for x in range(int(xmin), int(xmax) + 1):
+            for y in range(int(ymin), int(ymax) + 1):
+                u, v, w = barycentric_coords(np.array([x, y]), v0[:2], v1[:2], v2[:2])
+                if u >= 0 and v >= 0 and w >= 0:  # Point inside the triangle
+                    pixels[x, y] = color
+    
+    image.show()
+    return image
+
+
 # Create sphere data
 vertices, triangles = create_scene()
 transformed_vertices = transform_sphere(vertices)
@@ -294,5 +369,8 @@ transformed_vertices = perspective_projection(transformed_vertices, -0.1, 0.1, -
 transformed_vertices = viewport_transform(transformed_vertices, 512, 512)
 
 # Rasterize triangles
-image_with_normals = rasterize_triangles_with_dot_product(transformed_vertices, triangles, image_size=(512, 512))
-image_with_normals.save("rasterized_sphere_with_normals.png")  # Save the image file
+#image_with_normals = rasterize_triangles_with_dot_product(transformed_vertices, triangles, image_size=(512, 512))
+#image_with_normals.save("rasterized_sphere_with_normals.png")  # Save the image file
+
+image_flat_shading = rasterize_triangles_with_flat_shading(transformed_vertices, triangles, image_size=(512, 512))
+image_flat_shading.save("rasterized_sphere_with_flat_shading.png")
