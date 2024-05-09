@@ -15,6 +15,7 @@ public enum BodyType
 
 public class BodyData : MonoBehaviour
 {
+    /*
     private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_smooth.json";
     private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose.json";
     private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape.json";
@@ -22,6 +23,15 @@ public class BodyData : MonoBehaviour
     private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
     private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose_Stereo_Ours.json";
     private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape_Stereo_Ours.json";
+    */
+
+    private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_smooth.json";
+    private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose.json";
+    private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape.json";
+
+    private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
+    private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose_Stereo_Ours.json";
+    private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape_Stereo_Ours.json";
 
     private BodyType modelType = BodyType.None;
     private Color color = Color.white;
@@ -49,6 +59,11 @@ public class BodyData : MonoBehaviour
             color = Color.red;
         if (modelType == BodyType.GroundTruth)
             color = Color.yellow;
+    }
+
+    public List<JointData> GetJointFrameList()
+    {
+        return jointFrameList;
     }
 
     public string GetModelName()
@@ -225,6 +240,9 @@ public class BodyData : MonoBehaviour
         //if (modelType == BodyType.DeepRobot || modelType == BodyType.SMPLify)
         //    LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
 
+        //if (modelType == BodyType.SMPLify)
+        //    LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
+
         if (modelType == BodyType.GroundTruth)
             LoadFileGroundTruth(frameStartIndex, frameLastIndex);
 
@@ -338,6 +356,8 @@ public class BodyData : MonoBehaviour
 
     private void LoadFileDeepRobotOrSMPLify(int frameStartIndex, int frameLastIndex)
     {
+        string path = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/SMPLify/";
+
         for (int i = frameStartIndex; i < frameLastIndex; i++)
         {
             JointData jointData = new JointData(i);
@@ -346,9 +366,10 @@ public class BodyData : MonoBehaviour
             string filePath = null;
 
             if (modelType == BodyType.DeepRobot)
-                filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_3_joint_3d.json";
+                filePath = Directory.GetCurrentDirectory() + "/Data/" + i.ToString() + "_3_joint_3d.json";
             else if (modelType == BodyType.SMPLify)
                 filePath = Directory.GetCurrentDirectory() + "/Data/f_" + i.ToString() + "_3_joint_3d_smplify4.json";
+                //filePath = path + "USB_Sync_Left_" + i.ToString() + ""
 
             if (filePath == null)
                 continue;

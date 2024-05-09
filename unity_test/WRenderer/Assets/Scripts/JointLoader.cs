@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -19,8 +20,8 @@ public class JointLoader : MonoBehaviour
     // Body Model
     private List<BodyData> modelList;
 
-    //private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.SMPLify, BodyType.GroundTruth };
-    private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.GroundTruth };
+    private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.SMPLify, BodyType.GroundTruth };
+    //private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.GroundTruth };
 
     // Frame
     private float nextActionTime = 0f;
@@ -77,6 +78,45 @@ public class JointLoader : MonoBehaviour
 
             modelList.Add(bodyData);
         }
+
+
+        // Statistics
+        float mpjpe = Util.CalculateMPJPE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
+        float mpjre = Util.CalculateMPJRE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
+        float roote = Util.CalculateRootE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
+
+        float tjitterDeepRobot = Util.CalculateTemporalJointJitter(modelList[0].GetJointFrameList());
+        float tjitterGT = Util.CalculateTemporalJointJitter(modelList[2].GetJointFrameList());
+
+        // Writing statistics to the file
+        try
+        {
+            string filepath = Directory.GetCurrentDirectory() + "/Data/result.txt";
+
+            // Ensure the directory exists
+            string directory = Path.GetDirectoryName(filepath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            // Create a file to write to
+            using (StreamWriter writer = new StreamWriter(filepath))
+            {
+                writer.WriteLine("MPJPE: " + mpjpe);
+                writer.WriteLine("MPJRE: " + mpjre);
+                writer.WriteLine("RootE: " + roote);
+                writer.WriteLine("Temporal Joint Jitter (DeepRobot): " + tjitterDeepRobot);
+                writer.WriteLine("Temporal Joint Jitter (GT): " + tjitterGT);
+            }
+
+            Console.WriteLine("Statistics saved successfully to " + filepath);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error writing to file: " + e.Message);
+        }
+
 
         // Align (SMPLify <-> DeepRobot)
         float alignScale = 1.0f;
