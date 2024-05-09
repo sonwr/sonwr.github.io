@@ -1458,9 +1458,9 @@ MonoBehaviour:
   jointPrefab: {fileID: 4196250119612486365, guid: d4a1ba8fd328941d4a54301829d3c39e, type: 3}
   bonePrefab: {fileID: 4775857794237226603, guid: f2b112d42a9074f9a873418a4bf7e045, type: 3}
   smplPrefab: {fileID: 3560824673949057487, guid: 25f169e4ea8c8433a979977d6daf21c0, type: 3}
-  frameIndex: 2100
-  frameStartIndex: 2100
-  frameLastIndex: 2350
+  frameIndex: 0
+  frameStartIndex: 0
+  frameLastIndex: 1300
 --- !u!1 &1625355339
 GameObject:
   m_ObjectHideFlags: 0

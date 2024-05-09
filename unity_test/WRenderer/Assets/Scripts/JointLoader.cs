@@ -12,14 +12,15 @@ public class JointLoader : MonoBehaviour
     public GameObject smplPrefab;
 
     // Parameter
-    public int frameIndex = 2100;//1800;
-    public int frameStartIndex = 2100;//1800;
-    public int frameLastIndex = 2350;//3600; //2399;  // 3600;
+    public int frameIndex = 0; //2100;//1800;
+    public int frameStartIndex = 0; //2100;//1800;
+    public int frameLastIndex = 1300; //2350;//3600; //2399;  // 3600;
 
     // Body Model
     private List<BodyData> modelList;
 
-    private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.SMPLify, BodyType.GroundTruth };
+    //private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.SMPLify, BodyType.GroundTruth };
+    private BodyType[] bodyModels = new BodyType[] { BodyType.DeepRobot, BodyType.GroundTruth };
 
     // Frame
     private float nextActionTime = 0f;
@@ -68,6 +69,8 @@ public class JointLoader : MonoBehaviour
             GameObject smplBodyGameObject = new GameObject();
             smplBodyGameObject.transform.SetParent(this.transform, false);
             bodyData.InitSMPL(smplPrefab, smplBodyGameObject);
+            //if (bodyType == BodyType.DeepRobot)
+            //    smplBodyGameObject.transform.Rotate(0, 180, 0);
 
             jointBodyGameObject.name = bodyData.GetModelName();
             smplBodyGameObject.name = bodyData.GetModelName() + "_SMPL";
@@ -80,11 +83,11 @@ public class JointLoader : MonoBehaviour
         Vector3 alignTransform = new Vector3();
 
         (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[1]);
-        modelList[1].SetScaleAndDisplacement(alignScale, alignTransform);
+        //modelList[1].SetScaleAndDisplacement(alignScale, alignTransform);
 
 
         // Align (SMPLify <-> Ground Truth)
         (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[2]);
-        modelList[2].SetScaleAndDisplacement(alignScale, alignTransform);
+        //modelList[2].SetScaleAndDisplacement(alignScale, alignTransform);
     }
 }

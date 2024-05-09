@@ -15,6 +15,14 @@ public enum BodyType
 
 public class BodyData : MonoBehaviour
 {
+    private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_smooth.json";
+    private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose.json";
+    private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape.json";
+        
+    private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
+    private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose_Stereo_Ours.json";
+    private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape_Stereo_Ours.json";
+
     private BodyType modelType = BodyType.None;
     private Color color = Color.white;
 
@@ -106,7 +114,7 @@ public class BodyData : MonoBehaviour
         // Init rotation
         Quaternion rotation = Quaternion.identity;
         if (modelType == BodyType.DeepRobot)
-            rotation = Quaternion.Euler(0, 180, 0);
+            rotation = Quaternion.identity; // rotation = Quaternion.Euler(0, 180, 0);
         else if (modelType == BodyType.SMPLify)
             rotation = Quaternion.Euler(0, 0, 180);
         else if (modelType == BodyType.GroundTruth)
@@ -214,27 +222,84 @@ public class BodyData : MonoBehaviour
     {
         jointFrameList = new List<JointData>();
 
-        if (modelType == BodyType.DeepRobot || modelType == BodyType.SMPLify)
-            LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
+        //if (modelType == BodyType.DeepRobot || modelType == BodyType.SMPLify)
+        //    LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
 
         if (modelType == BodyType.GroundTruth)
             LoadFileGroundTruth(frameStartIndex, frameLastIndex);
+
+        if (modelType == BodyType.DeepRobot)
+            LoadFileDeepRobot(frameStartIndex, frameLastIndex);
+    }
+
+
+    private void LoadFileDeepRobot(int frameStartIndex, int frameLastIndex)
+    {
+        // Joint
+        string filePath = joint_filename_ours;
+        string jsonData = File.ReadAllText(filePath);
+        JointDataGroundTruth jointDataGroundTruth = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
+
+        // Shape
+        filePath = shape_filename_ours;
+        jsonData = File.ReadAllText(filePath);
+        ShapeDataGroundTruth shapeData = JsonConvert.DeserializeObject<ShapeDataGroundTruth>(jsonData);
+
+        // Pose
+        filePath = pose_filename_ours;
+        jsonData = File.ReadAllText(filePath);
+        PoseDataGroundTruth poseData = JsonConvert.DeserializeObject<PoseDataGroundTruth>(jsonData);
+
+        for (int i = 0; i < jointDataGroundTruth.Set.Count; i++)
+        {
+            JointDataFrame jointDataFrame = jointDataGroundTruth.Set[i];
+            int frameIndex = jointDataFrame.F;
+
+            if (frameIndex < frameStartIndex || frameIndex >= frameLastIndex)
+                continue;
+
+            JointData jointData = new JointData(frameIndex);
+
+            float scale = 0.01f;
+
+            List<Vector3> jointList = new List<Vector3>();
+            for (int j = 0; j < jointDataFrame.J.Length; j++)
+            {
+                float x = jointDataFrame.J[j][0] * scale;
+                float y = jointDataFrame.J[j][1] * scale;
+                float z = jointDataFrame.J[j][2] * scale;
+
+                Vector3 position = new Vector3(x, y, z);
+                jointList.Add(position);
+            }
+
+            jointData.jointList = jointList;
+            jointData.shapeList = shapeData.shape_param_frames[i].S;
+
+            List<Quaternion> poseList = Util.ConvertOpenGLToUnity(Util.ConvertToQuaternions(poseData.pose_parameters[i].R));
+            jointData.poseList = Util.ConvertGroundTruthRotationToSMPL(poseList);
+
+            jointFrameList.Add(jointData);
+        }
     }
 
     private void LoadFileGroundTruth(int frameStartIndex, int frameLastIndex)
     {
         // Joint
-        string filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_Joints_World3D_opose25_smooth.json";
+        //string filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_Joints_World3D_opose25_smooth.json";
+        string filePath = joint_filename_gt;
         string jsonData = File.ReadAllText(filePath);
         JointDataGroundTruth jointDataGroundTruth = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
 
         // Shape
-        filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Shape.json";
+        //filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Shape.json";
+        filePath = shape_filename_gt;
         jsonData = File.ReadAllText(filePath);
         ShapeDataGroundTruth shapeData = JsonConvert.DeserializeObject<ShapeDataGroundTruth>(jsonData);
 
         // Pose
-        filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Pose.json";
+        //filePath = Directory.GetCurrentDirectory() + "/Data/Frameset_SMPL_Pose.json";
+        filePath = pose_filename_gt;
         jsonData = File.ReadAllText(filePath);
         PoseDataGroundTruth poseData = JsonConvert.DeserializeObject<PoseDataGroundTruth>(jsonData);
 
