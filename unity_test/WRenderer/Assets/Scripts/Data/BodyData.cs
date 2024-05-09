@@ -15,7 +15,7 @@ public enum BodyType
 
 public class BodyData : MonoBehaviour
 {
-    /*
+    
     private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_smooth.json";
     private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose.json";
     private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape.json";
@@ -23,8 +23,8 @@ public class BodyData : MonoBehaviour
     private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
     private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose_Stereo_Ours.json";
     private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape_Stereo_Ours.json";
-    */
-
+    
+    /*
     private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_smooth.json";
     private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose.json";
     private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape.json";
@@ -32,6 +32,9 @@ public class BodyData : MonoBehaviour
     private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
     private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose_Stereo_Ours.json";
     private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape_Stereo_Ours.json";
+    */
+
+
 
     private BodyType modelType = BodyType.None;
     private Color color = Color.white;
@@ -156,6 +159,10 @@ public class BodyData : MonoBehaviour
 
     public void Render(int frameIndex, int frameStartIndex, int frameLastIndex)
     {
+
+        smplObject.transform.Rotate(0, -1, 0);
+        smplObject2.transform.Rotate(0, -1, 0);
+
         int idx = frameIndex - frameStartIndex;
         if (jointFrameList == null || jointFrameList.Count <= idx)
             return;
