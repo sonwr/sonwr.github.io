@@ -6,8 +6,16 @@ This repository contains the implementation of a simple rasterization pipeline u
 ## File Descriptions
 
 - `assignment4_unshaded.py`: This Python script contains the implementation for generating a rasterized sphere without shading (unshaded). It involves transformations such as modeling, camera setup, perspective projection, and viewport transformation. It uses a custom rasterizer written from scratch to process the generated triangles of the sphere.
+- `rasterized_sphere.png`: Output of the `assignment4_unshaded.py` script showing a rasterized view of an unshaded sphere.
 
-- `rasterized_sphere.png`: This image file shows the output of the `assignment4_unshaded.py` script, which is the rasterized view of an unshaded sphere.
+- `assignment4_flatshading.py`: Implements flat shading on the sphere, showing distinct colors per triangle face.
+- `rasterized_sphere_with_flat_shading.png`: Output showing the rasterized sphere with flat shading.
+
+- `assignment4_gouraud.py`: Implements Gouraud shading on the sphere, which interpolates vertex colors across the surface.
+- `rasterized_sphere_with_gouraud_shading_and_depth_buffer.png`: Output showing the rasterized sphere with Gouraud shading and depth buffering.
+
+- `assignment4_phong.py`: Implements Phong shading for more realistic lighting effects using normals interpolation.
+- `rasterized_sphere_with_phong_shading.png`: Output showing the rasterized sphere with Phong shading.
 
 ## Setup and Execution
 
@@ -31,14 +39,30 @@ To set up your environment to run this script, follow these steps:
 3. Navigate to the directory containing `assignment4_unshaded.py`.
 4. Run the script using the following command:
     ```bash
-    python assignment4_unshaded.py
+    python <script_name>.py
     ```
+    Replace <script_name> with the name of the script you want to run (e.g., assignment4_unshaded.py).
 5. The output image `rasterized_sphere.png` will be generated in the same directory, showing the rasterized sphere as specified in the assignment requirements.
 
 ## Output
-Below is the output from the script, showing the unshaded rasterized sphere:
+Below are the outputs from the scripts, showing the rasterized spheres with different shading techniques:
+
+- Unshaded Sphere:
 
 ![Rasterized Sphere](rasterized_sphere.png)
+
+- Flat Shaded Sphere:
+
+![Rasterized Sphere with Flat Shading](rasterized_sphere_with_flat_shading.png)
+
+- Gouraud Shaded Sphere:
+
+![Rasterized Sphere with Gouraud Shading and Depth Buffer](rasterized_sphere_with_gouraud_shading_and_depth_buffer.png)
+
+- Phong Shaded Sphere:
+
+![Rasterized Sphere with Phong Shading](rasterized_sphere_with_phong_shading.png)
+
 
 ## Implementation Details
 The script `assignment4_unshaded.py` performs the following operations:
