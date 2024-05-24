@@ -15,11 +15,15 @@ public enum BodyType
 
 public class BodyData : MonoBehaviour
 {
-    
+    // SMPLify
+    private string joint_filename_smplify = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPlify/pos_smplify.json";
+
+    // GT
     private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_smooth.json";
     private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose.json";
     private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape.json";
-        
+
+    // Ours
     private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
     private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose_Stereo_Ours.json";
     private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape_Stereo_Ours.json";
@@ -106,6 +110,7 @@ public class BodyData : MonoBehaviour
             GameObject joint = Instantiate(jointPrefab, jointPosition, Quaternion.identity);
             joint.GetComponent<Renderer>().material.color = color;
             joint.transform.SetParent(parentGameObject.transform);
+            joint.name = joint.name + "_" + i.ToString();
             jointGameObjects.Add(joint);
 
             GameObject bone = Instantiate(bonePrefab, jointPosition, Quaternion.identity);
@@ -159,9 +164,17 @@ public class BodyData : MonoBehaviour
 
     public void Render(int frameIndex, int frameStartIndex, int frameLastIndex)
     {
+        if (modelType == BodyType.SMPLify)
+        {
+            smplObject.transform.Rotate(0, 1, 0);
+            smplObject2.transform.Rotate(0, 1, 0);
+        }
+        else
+        {
+            smplObject.transform.Rotate(0, -1, 0);
+            smplObject2.transform.Rotate(0, -1, 0);
+        }
 
-        smplObject.transform.Rotate(0, -1, 0);
-        smplObject2.transform.Rotate(0, -1, 0);
 
         int idx = frameIndex - frameStartIndex;
         if (jointFrameList == null || jointFrameList.Count <= idx)
@@ -250,6 +263,10 @@ public class BodyData : MonoBehaviour
         //if (modelType == BodyType.SMPLify)
         //    LoadFileDeepRobotOrSMPLify(frameStartIndex, frameLastIndex);
 
+
+        if (modelType == BodyType.SMPLify)
+            LoadFileSMPLify(frameStartIndex, frameLastIndex);
+
         if (modelType == BodyType.GroundTruth)
             LoadFileGroundTruth(frameStartIndex, frameLastIndex);
 
@@ -257,6 +274,72 @@ public class BodyData : MonoBehaviour
             LoadFileDeepRobot(frameStartIndex, frameLastIndex);
     }
 
+
+    private void LoadFileSMPLify(int frameStartIndex, int frameLastIndex)
+    {
+        // Joint
+        string filePath = joint_filename_smplify;
+        string jsonData = File.ReadAllText(filePath);
+        JointDataGroundTruth jointDataGroundTruth = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
+
+        string path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPLify/";
+
+        for (int i = 0; i < jointDataGroundTruth.Set.Count; i++)
+        {
+            // Position
+            JointDataFrame jointDataFrame = jointDataGroundTruth.Set[i];
+            int frameIndex = jointDataFrame.F;
+
+            if (frameIndex < frameStartIndex || frameIndex >= frameLastIndex)
+                continue;
+
+            JointData jointData = new JointData(frameIndex);
+
+            float scale = 1.0f;// 0.01f;
+
+            List<Vector3> jointList = new List<Vector3>();
+            for (int j = 0; j < jointDataFrame.J.Length; j++)
+            {
+                float x = jointDataFrame.J[j][0] * scale;
+                float y = jointDataFrame.J[j][1] * scale;
+                float z = jointDataFrame.J[j][2] * scale;
+
+                Vector3 position = new Vector3(x, y, z);
+                jointList.Add(position);
+            }
+
+            jointData.jointList = jointList;
+
+
+
+            // SMPLify
+            // Read and process the JSON file
+            filePath = path + "param_smplify_" + i.ToString() + ".json";
+            if (filePath == null)
+                continue;
+
+            string dataAsJson = File.ReadAllText(filePath);
+            PoseAndShapeDataSMPLify poseAndShapeData = JsonConvert.DeserializeObject<PoseAndShapeDataSMPLify>(dataAsJson);
+
+            // Converting pose parameters to Quaternion
+            List<Quaternion> poseList = new List<Quaternion>();
+
+            for (int k = 0; k < poseAndShapeData.pose.Count; k += 3)
+            {
+                Vector3 rodVector = new Vector3(poseAndShapeData.pose[k], poseAndShapeData.pose[k + 1], poseAndShapeData.pose[k + 2]);
+                Quaternion quaternion = Util.RodriguesToQuaternion(rodVector);
+                poseList.Add(quaternion);
+            }
+            jointData.poseList = Util.ConvertOpenGLToUnity(poseList);
+
+            // Assigning shape parameters directly
+            jointData.shapeList = poseAndShapeData.betas;
+            
+
+
+            jointFrameList.Add(jointData);
+        }
+    }
 
     private void LoadFileDeepRobot(int frameStartIndex, int frameLastIndex)
     {

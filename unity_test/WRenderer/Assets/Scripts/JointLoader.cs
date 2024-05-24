@@ -15,7 +15,7 @@ public class JointLoader : MonoBehaviour
     // Parameter
     public int frameIndex = 0; //2100;//1800;
     public int frameStartIndex = 0; //2100;//1800;
-    public int frameLastIndex = 1300; //2350;//3600; //2399;  // 3600;
+    public int frameLastIndex = 100;//1300; //2350;//3600; //2399;  // 3600;
 
     // Body Model
     private List<BodyData> modelList;
