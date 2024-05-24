@@ -34,6 +34,9 @@ Troubleshooting (osx): [^1]
 
 (osx)
 % source activate
+
+(linux, python 2.7.18)
+% virtualenv --python=python2.7.18 py2718
 ```
 
 ## 3. pytorch
