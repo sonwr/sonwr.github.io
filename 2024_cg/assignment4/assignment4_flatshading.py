@@ -374,7 +374,6 @@ def rasterize_triangles_with_flat_shading(vertices, triangles, image_size=(512, 
             continue
         
         color = calculate_lighting(normal, light_pos, centroid, material, light_intensity)
-        #color = calculate_lighting(normal, light_pos, calculate_camera_direction(), material, light_intensity)
         color = tuple(color.astype(int))
         if color[1] == 255:
             print(f"Normal: {normal}, Dot Product: {dot_product}, Color: {color}")

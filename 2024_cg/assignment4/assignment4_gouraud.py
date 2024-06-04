@@ -303,17 +303,18 @@ def calculate_lighting(normal, light_pos, view_dir, material, light_intensity):
     normal = normal / np.linalg.norm(normal)
     light_dir = light_pos - view_dir
     light_dir = light_dir / np.linalg.norm(light_dir)
-    view_dir = -view_dir  # Camera looks along -view_dir
+    #view_dir = -view_dir  # Camera looks along -view_dir
 
     ambient = material['ka'] * light_intensity['ambient']
     diffuse = max(np.dot(normal, light_dir), 0) * material['kd']
     reflect_dir = 2 * np.dot(normal, light_dir) * normal - light_dir
     reflect_dir = reflect_dir / np.linalg.norm(reflect_dir)
+    view_dir = view_dir / np.linalg.norm(view_dir)
     specular_strength = np.power(max(np.dot(reflect_dir, -view_dir), 0), material['p'])
     specular = specular_strength * material['ks']
 
-    #color = ambient + light_intensity['point'] * (diffuse + specular)
-    color = ambient + light_intensity['point'] * (diffuse)
+    color = ambient + light_intensity['point'] * (diffuse + specular)
+    #color = ambient + light_intensity['point'] * (diffuse)
     return np.clip(color, 0, 1) * 255  # Convert to RGB scale and clip
 
 
