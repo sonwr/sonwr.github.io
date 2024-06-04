@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 import numpy as np
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -18,6 +19,27 @@ class Triangle:
 gPositions = []
 gNormals = []
 gTriangles = []
+
+class FPSCounter:
+    def __init__(self):
+        self.start_time = time.time()
+        self.frame_count = 0
+        self.fps = 0
+
+    def update(self):
+        self.frame_count += 1
+        current_time = time.time()
+        elapsed_time = current_time - self.start_time
+
+        if elapsed_time > 1.0:
+            self.fps = self.frame_count / elapsed_time
+            self.start_time = current_time
+            self.frame_count = 0
+
+    def get_fps(self):
+        return self.fps
+
+fps_counter = FPSCounter()
 
 def tokenize(string, delimiter):
     tokens = string.split(delimiter)
@@ -53,8 +75,13 @@ def load_mesh(fileName):
 
     print(f"Mesh loaded with {len(gPositions)} vertices, {len(gNormals)} normals, and {len(gTriangles)} triangles.")
 
+def draw_text(x, y, text):
+    glWindowPos2f(x, y)
+    for ch in text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(ch))
+
 def init():
-    glEnable(GL_DEPTH_TEST)        
+    glEnable(GL_DEPTH_TEST)
     glDisable(GL_CULL_FACE)  # Back-face culling 비활성화
 
     # Material
@@ -67,7 +94,6 @@ def init():
     glMaterialfv(GL_FRONT, GL_DIFFUSE, kd)
     glMaterialfv(GL_FRONT, GL_SPECULAR, ks)
     glMaterialf(GL_FRONT, GL_SHININESS, p)
-
 
     # Light
     glEnable(GL_LIGHTING)
@@ -89,11 +115,10 @@ def init():
     glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular)
     glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, light_direction)
 
-
 def display():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
-    gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);
+    gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0)
 
     glPushMatrix()
     glTranslatef(0.1, -1.0, -1.5)
@@ -110,6 +135,12 @@ def display():
     glEnd()
 
     glPopMatrix()
+
+    fps_counter.update()
+    fps_text = f"FPS: {fps_counter.get_fps():.2f}"
+    draw_text(10, 10, fps_text)
+    
+
     glutSwapBuffers()
 
 def reshape(width, height):
@@ -132,6 +163,7 @@ def main():
 
     glutDisplayFunc(display)
     glutReshapeFunc(reshape)
+    glutIdleFunc(display)
     glutMainLoop()
 
 if __name__ == "__main__":
