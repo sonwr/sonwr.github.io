@@ -83,16 +83,49 @@ public class JointLoader : MonoBehaviour
             modelList.Add(bodyData);
         }
 
+        // Align (SMPLify <-> DeepRobot)
+        float alignScale = 1.0f;
+        Vector3 alignTransform = new Vector3();
 
-        // Statistics
-        float mpjpe = Util.CalculateMPJPE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
-        float mpjre = Util.CalculateMPJRE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
-        float roote = Util.CalculateRootE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
+        alignTransform = BodyData.AdjustPositionToHips(modelList[0], modelList[1]);
+        modelList[1].SetScaleAndDisplacement(alignScale, alignTransform);
 
-        float tjitterDeepRobot = Util.CalculateTemporalJointJitter(modelList[0].GetJointFrameList());
+        //(alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[1]);
+        //modelList[1].SetScaleAndDisplacement(alignScale, alignTransform);
+
+        // Align (SMPLify <-> Ground Truth)
+        (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[2]);
+        //modelList[2].SetScaleAndDisplacement(alignScale, alignTransform);
+
+
+
+
+        SaveStatisticsResult();
+
+    }
+    private void SaveStatisticsResult()
+    {
+        // Statistics for ours (comparison of Our method vs. Ground Truth)
+        float mpjpeOurs = Util.CalculateMPJPE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
+        float mpjreOurs = Util.CalculateMPJRE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
+        float rooteOurs = Util.CalculateRootE(modelList[0].GetJointFrameList(), modelList[2].GetJointFrameList());
+
+        // Statistics for SMPLify (comparison of SMPLify vs. Ground Truth)
+        float mpjpeSmplify = Util.CalculateMPJPE(modelList[1].GetJointFrameList(), modelList[2].GetJointFrameList());
+        float mpjreSmplify = Util.CalculateMPJRE(modelList[1].GetJointFrameList(), modelList[2].GetJointFrameList());
+        float rooteSmplify = Util.CalculateRootE(modelList[1].GetJointFrameList(), modelList[2].GetJointFrameList());
+
+        // Temporal Joint Jitter calculations
+        float tjitterOurs = Util.CalculateTemporalJointJitter(modelList[0].GetJointFrameList());
+        float tjitterSmplify = Util.CalculateTemporalJointJitter(modelList[1].GetJointFrameList());
         float tjitterGT = Util.CalculateTemporalJointJitter(modelList[2].GetJointFrameList());
 
-        // Writing statistics to the file
+        // Lists for joints comparison
+        List<JointData> ourJointList = modelList[0].GetJointFrameList();
+        List<JointData> smplifyJointList = modelList[1].GetJointFrameList();
+        List<JointData> gtJointList = modelList[2].GetJointFrameList();
+
+        // Writing all statistics to a single file
         try
         {
             string filepath = Directory.GetCurrentDirectory() + "/Data/result.txt";
@@ -107,56 +140,54 @@ public class JointLoader : MonoBehaviour
             // Create a file to write to
             using (StreamWriter writer = new StreamWriter(filepath))
             {
-                writer.WriteLine("MPJPE: " + mpjpe);
-                writer.WriteLine("MPJRE: " + mpjre);
-                writer.WriteLine("RootE: " + roote);
-                writer.WriteLine("Temporal Joint Jitter (Our): " + tjitterDeepRobot);
-                writer.WriteLine("Temporal Joint Jitter (GT): " + tjitterGT);
-            }
+                // Overall statistics for ours
+                writer.WriteLine("Statistics for Our Method (compared to GT):");
+                writer.WriteLine("MPJPE: " + mpjpeOurs);
+                writer.WriteLine("MPJRE: " + mpjreOurs);
+                writer.WriteLine("RootE: " + rooteOurs);
+                writer.WriteLine("");
 
-            Console.WriteLine("Statistics saved successfully to " + filepath);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error writing to file: " + e.Message);
-        }
+                // Overall statistics for SMPLify
+                writer.WriteLine("Statistics for SMPLify (compared to GT):");
+                writer.WriteLine("MPJPE: " + mpjpeSmplify);
+                writer.WriteLine("MPJRE: " + mpjreSmplify);
+                writer.WriteLine("RootE: " + rooteSmplify);
+                writer.WriteLine("");
 
+                // Temporal Joint Jitter statistics
+                writer.WriteLine("Temporal Joint Jitter:");
+                writer.WriteLine("Our Method: " + tjitterOurs);
+                writer.WriteLine("SMPLify: " + tjitterSmplify);
+                writer.WriteLine("Ground Truth: " + tjitterGT);
+                writer.WriteLine("");
 
-        List<JointData> ourJointList = modelList[0].GetJointFrameList();
-        List<JointData> gtJointList = modelList[2].GetJointFrameList();
-
-
-        // Writing statistics to the file
-        try
-        {
-            string filepath = Directory.GetCurrentDirectory() + "/Data/result_joints.txt";
-
-            // Ensure the directory exists
-            string directory = Path.GetDirectoryName(filepath);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            // Create a file to write to
-            using (StreamWriter writer = new StreamWriter(filepath))
-            {
-
+                // Joint-specific statistics
+                writer.WriteLine("Joint-Specific Statistics(compared to GT):");
                 for (int i = 0; i < JointData.boneIndexNamesOpenpose.Length; i++)
                 {
-                    float _mpjpe = Util.CalculateMPJPEByJoint(ourJointList, gtJointList, i);
+                    float _mpjpeOur = Util.CalculateMPJPEByJoint(ourJointList, gtJointList, i);
+                    float _mpjpeSMPLify = Util.CalculateMPJPEByJoint(smplifyJointList, gtJointList, i);
+
+                    // TODO: Left Elbow -> 0
+                    float _mpjreOur = Util.CalculateMPJREByJoint(ourJointList, gtJointList, i);
+                    float _mpjreSMPLify = Util.CalculateMPJREByJoint(smplifyJointList, gtJointList, i);
+
                     float _tjitterOur = Util.CalculateTemporalJointJitterByJoint(ourJointList, i);
+                    float _tjitterSMPLify = Util.CalculateTemporalJointJitterByJoint(smplifyJointList, i);
                     float _tjitterGT = Util.CalculateTemporalJointJitterByJoint(gtJointList, i);
 
                     string jointName = JointData.boneIndexNamesOpenpose[i];
 
                     writer.WriteLine($"Joint Name: {jointName}");
-                    writer.WriteLine($"MPJPE: {_mpjpe}");
+                    writer.WriteLine($"MPJPE (Our): {_mpjpeOur}");
+                    writer.WriteLine($"MPJPE (SMPLify): {_mpjpeSMPLify}");
+                    writer.WriteLine($"MPJRE (Our): {_mpjreOur}");
+                    writer.WriteLine($"MPJRE (SMPLify): {_mpjreSMPLify}");
                     writer.WriteLine($"Temporal Joint Jitter (Our): {_tjitterOur}");
+                    writer.WriteLine($"Temporal Joint Jitter (SMPLify): {_tjitterSMPLify}");
                     writer.WriteLine($"Temporal Joint Jitter (GT): {_tjitterGT}");
                     writer.WriteLine("");  // Add an empty line for better readability
                 }
-
             }
 
             Console.WriteLine("Statistics saved successfully to " + filepath);
@@ -165,55 +196,5 @@ public class JointLoader : MonoBehaviour
         {
             Console.WriteLine("Error writing to file: " + e.Message);
         }
-
-
-        // Writing statistics to the file
-        try
-        {
-            string filepath = Directory.GetCurrentDirectory() + "/Data/result_joints2.txt";
-
-            // Ensure the directory exists
-            string directory = Path.GetDirectoryName(filepath);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            // Create a file to write to
-            using (StreamWriter writer = new StreamWriter(filepath))
-            {
-
-                for (int i = 0; i < JointData.boneIndexNamesSMPL.Length; i++)
-                {
-                    float _mpjre = Util.CalculateMPJREByJoint(ourJointList, gtJointList, i);
-
-                    string jointName = JointData.boneIndexNamesSMPL[i];
-
-                    writer.WriteLine($"Joint Name: {jointName}");
-                    writer.WriteLine($"MPJRE: {_mpjre}");
-                    writer.WriteLine("");  // Add an empty line for better readability
-                }
-
-            }
-
-            Console.WriteLine("Statistics saved successfully to " + filepath);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error writing to file: " + e.Message);
-        }
-
-
-        // Align (SMPLify <-> DeepRobot)
-        float alignScale = 1.0f;
-        Vector3 alignTransform = new Vector3();
-
-        (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[1]);
-        //modelList[1].SetScaleAndDisplacement(alignScale, alignTransform);
-
-
-        // Align (SMPLify <-> Ground Truth)
-        (alignScale, alignTransform) = BodyData.AdjustScaleAndPosition(modelList[0], modelList[2]);
-        //modelList[2].SetScaleAndDisplacement(alignScale, alignTransform);
     }
 }

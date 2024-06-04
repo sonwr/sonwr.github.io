@@ -16,17 +16,20 @@ public enum BodyType
 public class BodyData : MonoBehaviour
 {
     // SMPLify
-    private string joint_filename_smplify = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPlify/pos_smplify.json";
+    //private string joint_filename_smplify = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPlify/pos_smplify.json";
+    //private string smplify_path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPLify/";
+    private string joint_filename_smplify = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq2_Right_output/pos_smplify.json";
+    private string smplify_path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq2_Right_output/";
 
     // GT
-    private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_smooth.json";
-    private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose.json";
-    private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape.json";
+    private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_smooth.json";
+    private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose.json";
+    private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape.json";
 
     // Ours
-    private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
-    private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose_Stereo_Ours.json";
-    private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape_Stereo_Ours.json";
+    private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
+    private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose_Stereo_Ours.json";
+    private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape_Stereo_Ours.json";
     
     /*
     private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_smooth.json";
@@ -280,14 +283,14 @@ public class BodyData : MonoBehaviour
         // Joint
         string filePath = joint_filename_smplify;
         string jsonData = File.ReadAllText(filePath);
-        JointDataGroundTruth jointDataGroundTruth = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
+        JointDataGroundTruth jointDataSMPLify = JsonConvert.DeserializeObject<JointDataGroundTruth>(jsonData);
 
-        string path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPLify/";
+        //string path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPLify/";
 
-        for (int i = 0; i < jointDataGroundTruth.Set.Count; i++)
+        for (int i = 0; i < jointDataSMPLify.Set.Count; i++)
         {
             // Position
-            JointDataFrame jointDataFrame = jointDataGroundTruth.Set[i];
+            JointDataFrame jointDataFrame = jointDataSMPLify.Set[i];
             int frameIndex = jointDataFrame.F;
 
             if (frameIndex < frameStartIndex || frameIndex >= frameLastIndex)
@@ -301,7 +304,7 @@ public class BodyData : MonoBehaviour
             for (int j = 0; j < jointDataFrame.J.Length; j++)
             {
                 float x = jointDataFrame.J[j][0] * scale;
-                float y = jointDataFrame.J[j][1] * scale;
+                float y = jointDataFrame.J[j][1] * scale * -1;
                 float z = jointDataFrame.J[j][2] * scale;
 
                 Vector3 position = new Vector3(x, y, z);
@@ -314,7 +317,7 @@ public class BodyData : MonoBehaviour
 
             // SMPLify
             // Read and process the JSON file
-            filePath = path + "param_smplify_" + i.ToString() + ".json";
+            filePath = smplify_path + "param_smplify_" + i.ToString() + ".json";
             if (filePath == null)
                 continue;
 
@@ -590,6 +593,23 @@ public class BodyData : MonoBehaviour
         Vector3 displacement = robotShoulderCenter - smplifyShoulderCenter;
 
         return (scale, displacement);
+    }
+
+    public static Vector3 AdjustPositionToHips(BodyData target, BodyData src)
+    {
+        // first frame
+        Vector3 LHip_Target = target.jointFrameList[0].jointList[12];
+        Vector3 RHip_Target = target.jointFrameList[0].jointList[9];
+
+        Vector3 LHip_Src = src.jointFrameList[0].jointList[12];
+        Vector3 RHip_Src = src.jointFrameList[0].jointList[9];
+
+        // 위치 조정: 엉덩이 중심점을 기준으로 조정
+        Vector3 targetHipCenter = (LHip_Target + RHip_Target) / 2;
+        Vector3 srcHipCenter = (LHip_Src + RHip_Src) / 2;
+        Vector3 displacement = targetHipCenter - srcHipCenter;
+
+        return displacement;
     }
 }
 

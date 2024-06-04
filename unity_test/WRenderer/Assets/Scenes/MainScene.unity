@@ -1460,7 +1460,7 @@ MonoBehaviour:
   smplPrefab: {fileID: 3560824673949057487, guid: 25f169e4ea8c8433a979977d6daf21c0, type: 3}
   frameIndex: 0
   frameStartIndex: 0
-  frameLastIndex: 1360
+  frameLastIndex: 1495
 --- !u!1 &1625355339
 GameObject:
   m_ObjectHideFlags: 0
