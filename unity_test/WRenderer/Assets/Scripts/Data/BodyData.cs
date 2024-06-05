@@ -18,18 +18,18 @@ public class BodyData : MonoBehaviour
     // SMPLify
     //private string joint_filename_smplify = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPlify/pos_smplify.json";
     //private string smplify_path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1/SMPLify/";
-    private string joint_filename_smplify = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq2_Right_output/pos_smplify.json";
-    private string smplify_path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq2_Right_output/";
+    private string joint_filename_smplify = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1_Right_output/pos_smplify.json";
+    private string smplify_path = Directory.GetCurrentDirectory() + "/Data/2024-05-24/Seq1_Right_output/";
 
     // GT
-    private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_smooth.json";
-    private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose.json";
-    private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape.json";
+    private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_smooth.json";
+    private string pose_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose.json";
+    private string shape_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape.json";
 
     // Ours
-    private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
-    private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Pose_Stereo_Ours.json";
-    private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_SMPL_Shape_Stereo_Ours.json";
+    private string joint_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_Joints_World3D_opose25_Stereo_Ours.json";
+    private string pose_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Pose_Stereo_Ours.json";
+    private string shape_filename_ours = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq1/Frameset_SMPL_Shape_Stereo_Ours.json";
     
     /*
     private string joint_filename_gt = Directory.GetCurrentDirectory() + "/Data/2024-05-07/Seq2/Frameset_Joints_World3D_opose25_smooth.json";

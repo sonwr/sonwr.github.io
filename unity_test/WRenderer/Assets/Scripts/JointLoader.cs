@@ -162,15 +162,11 @@ public class JointLoader : MonoBehaviour
                 writer.WriteLine("");
 
                 // Joint-specific statistics
-                writer.WriteLine("Joint-Specific Statistics(compared to GT):");
+                writer.WriteLine("Joint-Specific Statistics(compared to GT): MPJPE");
                 for (int i = 0; i < JointData.boneIndexNamesOpenpose.Length; i++)
                 {
                     float _mpjpeOur = Util.CalculateMPJPEByJoint(ourJointList, gtJointList, i);
                     float _mpjpeSMPLify = Util.CalculateMPJPEByJoint(smplifyJointList, gtJointList, i);
-
-                    // TODO: Left Elbow -> 0
-                    float _mpjreOur = Util.CalculateMPJREByJoint(ourJointList, gtJointList, i);
-                    float _mpjreSMPLify = Util.CalculateMPJREByJoint(smplifyJointList, gtJointList, i);
 
                     float _tjitterOur = Util.CalculateTemporalJointJitterByJoint(ourJointList, i);
                     float _tjitterSMPLify = Util.CalculateTemporalJointJitterByJoint(smplifyJointList, i);
@@ -181,13 +177,28 @@ public class JointLoader : MonoBehaviour
                     writer.WriteLine($"Joint Name: {jointName}");
                     writer.WriteLine($"MPJPE (Our): {_mpjpeOur}");
                     writer.WriteLine($"MPJPE (SMPLify): {_mpjpeSMPLify}");
-                    writer.WriteLine($"MPJRE (Our): {_mpjreOur}");
-                    writer.WriteLine($"MPJRE (SMPLify): {_mpjreSMPLify}");
                     writer.WriteLine($"Temporal Joint Jitter (Our): {_tjitterOur}");
                     writer.WriteLine($"Temporal Joint Jitter (SMPLify): {_tjitterSMPLify}");
                     writer.WriteLine($"Temporal Joint Jitter (GT): {_tjitterGT}");
                     writer.WriteLine("");  // Add an empty line for better readability
                 }
+
+
+                // Joint-specific statistics
+                writer.WriteLine("Joint-Specific Statistics(compared to GT): MPJRE");
+                for (int i = 0; i < JointData.boneIndexNamesSMPL.Length; i++)
+                {
+                    float _mpjreOur = Util.CalculateMPJREByJoint(ourJointList, gtJointList, i);
+                    float _mpjreSMPLify = Util.CalculateMPJREByJoint(smplifyJointList, gtJointList, i);
+
+                    string jointName = JointData.boneIndexNamesSMPL[i];
+
+                    writer.WriteLine($"Joint Name: {jointName}");
+                    writer.WriteLine($"MPJRE (Our): {_mpjreOur}");
+                    writer.WriteLine($"MPJRE (SMPLify): {_mpjreSMPLify}");
+                    writer.WriteLine("");  // Add an empty line for better readability
+                }
+
             }
 
             Console.WriteLine("Statistics saved successfully to " + filepath);
