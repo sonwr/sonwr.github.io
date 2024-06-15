@@ -48,11 +48,16 @@ def extract_parameters(pkl_dir, pkl_files, index_mapping, bone_parents):
 
         # Compute global rotations
         global_rotations = compute_global_rotations(reordered_pose_quaternions, bone_parents)
+                
+        # Negate the cam_t values (meter to centimeter)
+        negated_cam_t = (-cam_t[0] / 1, -cam_t[1] / 1, -cam_t[2] / 1)
+        negated_cam_t = (0, 0, 0)
         
         poses.append({
             "F": i,
             "R": global_rotations,
-            "T": cam_t.tolist()
+            #"T": cam_t.tolist()
+            "T": negated_cam_t
         })
         shapes.append({
             "F": i,
@@ -71,7 +76,7 @@ def save_json(data, file_path):
         json.dump(data, f, indent=3)
 
 def main():
-    pkl_dir = "Seq2_Right"
+    pkl_dir = "Seq3_Right"
     #pkl_files = sorted([os.path.join(pkl_dir, f) for f in os.listdir(pkl_dir) if f.endswith('.pkl') and not f.endswith('_2.pkl')])
     pkl_files = [f for f in os.listdir(pkl_dir) if f.endswith('.pkl') and f.count('_') != 4]
     pkl_files.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
